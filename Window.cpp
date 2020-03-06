@@ -462,7 +462,8 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 			rotAxis = glm::cross(last_trackball_point, curPoint);
 			rot_angle = velocity * 50;// here is a constant to change angle
 			if (controlModeNum == 1) {
-				view = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * view;
+				eye = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * glm::vec4(eye, 1.0f);
+				view = glm::lookAt(eye, center, up);
 			}
 			else {
 				robotArmyRotationLayer->update(glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis));
