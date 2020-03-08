@@ -8,6 +8,8 @@ void errorCallback(int error, const char* description)
 
 void setupCallbacks(GLFWwindow* window)
 {
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// Set the error callback.
 	glfwSetErrorCallback(errorCallback);
 	// Set the key callback.
@@ -51,7 +53,7 @@ void printVersions()
 int main(void)
 {
 	// Create the GLFW window.
-	GLFWwindow* window = Window::createWindow(640, 480);
+	GLFWwindow* window = Window::createWindow(1900, 1060);
 	if (!window) exit(EXIT_FAILURE);
 
 	// Print OpenGL and GLSL versions.
