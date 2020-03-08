@@ -1,6 +1,7 @@
 #include "Window.h"
 #include <math.h> 
 #include<algorithm> 
+#include <iostream>
 
 /* 
  * Declare your variables below. Unnamed namespace is used here to avoid 
@@ -54,13 +55,12 @@ namespace
 	int delay_army_movement_counter = 0;
 	int delay_army_movement_frames = 5;
 
-	glm::vec3 eye(0, 0, 20); // Camera position.
+	glm::vec3 eye(0, 0, 3); // Camera position.
 	glm::vec3 center(0, 0, 0); // The point we are looking at.
 	glm::vec3 up(0, 1, 0); // The up direction of the camera.
 	float fovy = 60;
 	float near = 1;
 	float far = 1000;
-	glm::mat4 view = glm::lookAt(eye, center, up); // View matrix, defined by eye, center and up.
 	glm::mat4 projection; // Projection matrix.
 
 	GLuint program; // The shader program id.
@@ -78,6 +78,23 @@ namespace
 	glm::vec3 last_trackball_point;
 	bool dragging = false;
 	bool rotating = false;
+
+	// for camera controls
+	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
+
+	float deltaTime = 0.0f;
+	float lastFrame = 0.0f;
+
+	glm::vec3 direction;
+	float yaw = -90.0f;
+	float pitch = 0.0f;
+	float lastX = 960, lastY = 540;
+
+	bool firstMouse = true;
+
 };
 
 bool Window::initializeProgram()
@@ -349,6 +366,13 @@ void Window::resizeCallback(GLFWwindow* window, int w, int h)
 
 void Window::idleCallback()
 {
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	// Perform any updates as necessary. 
 
 	/*
@@ -385,6 +409,10 @@ void Window::idleCallback()
 
 void Window::displayCallback(GLFWwindow* window)
 {
+	// update view
+	view = glm::lookAt(camPos, camPos + camFront, camUp);
+
+
 	// Clear the color and depth buffers.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -446,7 +474,7 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 	if (dragging) {
 		double movement_x = xpos - mouse_x;
 		double movement_y = ypos - mouse_y;
-		view = glm::translate(glm::mat4(1), glm::vec3(movement_x / 50, -movement_y / 50, 0)) * view;
+		//view = glm::translate(glm::mat4(1), glm::vec3(movement_x / 50, -movement_y / 50, 0)) * view;
 		mouse_x = xpos;
 		mouse_y = ypos;
 	}else if (rotating) {
@@ -462,7 +490,7 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 			rotAxis = glm::cross(last_trackball_point, curPoint);
 			rot_angle = velocity * 50;// here is a constant to change angle
 			if (controlModeNum == 1) {
-				view = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * view;
+				//view = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * view;
 			}
 			else {
 				robotArmyRotationLayer->update(glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis));
@@ -472,7 +500,34 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 		}
 		last_trackball_point = curPoint;
 	}
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	// for first person camera
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
 
+	const float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	camFront = glm::normalize(direction);
 }
 
 void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -504,7 +559,7 @@ void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 
 void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	if (controlModeNum == 1) {
-		view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, (float)yoffset)) * view;
+		//view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, (float)yoffset)) * view;
 	}
 	else {
 		float scale = (yoffset > 0) ? 1.2: 0.8;
@@ -529,12 +584,14 @@ glm::mat4 Window::translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::ve
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+
+	float camSpeed = 200.5f * deltaTime;
 	/*
 	 * TODO: Section 4: Modify below to add your key callbacks.
 	 */
 
 	 // Check for a key press.
-	if (action == GLFW_PRESS)
+	if (action == GLFW_PRESS || action == GLFW_REPEAT)
 	{
 		// Uppercase key presses (shift held down + key press)
 		if (mods == GLFW_MOD_SHIFT) {
@@ -547,17 +604,23 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Deals with lowercase key presses
 			switch (key)
 			{
+			case GLFW_KEY_W:
+				camPos += camSpeed * camFront;
+				break;
+			case GLFW_KEY_S:
+				camPos -= camSpeed * camFront;
+				break;
+			case GLFW_KEY_A:
+				camPos -= glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				break;
+			case GLFW_KEY_D:
+				camPos += glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				break;
 			case GLFW_KEY_C:
 				controlModeNum = 1;
 				break;
 			case GLFW_KEY_X:
 				controlModeNum = 2;
-				break;
-			case GLFW_KEY_A:
-				view = glm::translate(glm::mat4(1), glm::vec3(2, 0, 0)) * view;
-				break;
-			case GLFW_KEY_D:
-				view = glm::translate(glm::mat4(1), glm::vec3(-2, 0, 0)) * view;
 				break;
 			case GLFW_KEY_ESCAPE:
 				// Close the window. This causes the program to also terminate.
