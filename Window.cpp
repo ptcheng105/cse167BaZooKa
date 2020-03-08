@@ -42,8 +42,9 @@ namespace
 
 	//rocket
 	SceneGeometry* cylinder, * cone, *sphere;
-	SceneTransform* rocketHead, * rocketBody, * rocket;
+	SceneTransform* rocketHead, * rocketBody, * rocket, *launcher;
 
+	SceneGeometry2* launcherGeometry;
 	//curve
 	SceneTransform *curvepath;
 	BezierCurveGeometry *curve1, * curve2, *curve3, *curve4, *curve5;
@@ -95,6 +96,10 @@ namespace
 
 	bool firstMouse = true;
 
+	GLuint modelProgram;
+
+	float camTime = 0.0;
+
 };
 
 bool Window::initializeProgram()
@@ -108,6 +113,7 @@ bool Window::initializeProgram()
 	//load curve shader
 	curveProgram = LoadShaders("shaders/curve.vert", "shaders/curve.frag");
 
+	modelProgram = LoadShaders("shaders/modelshader.vert", "shaders/modelshader.frag");
 	// Check the shader programs.
 	if (!program)
 	{
@@ -122,6 +128,11 @@ bool Window::initializeProgram()
 	if (!curveProgram)
 	{
 		std::cerr << "Failed to initialize curve program" << std::endl;
+		//return false;
+	}
+
+	if (!modelProgram) {
+		std::cerr << "Failed to initialize model program" << std::endl;
 		//return false;
 	}
 
@@ -147,7 +158,11 @@ bool Window::initializeObjects()
 	cylinder = new SceneGeometry("body_s.obj", 1);
 	cone = new SceneGeometry("cone.obj", 2);
 	sphere = new SceneGeometry("sphere.obj", 2);
+	launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
+	launcherGeometry->genTexture("gun_D.jpg");
 
+	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
+	launcher->addChild(launcherGeometry);
 	rocketHead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
 	rocketHead->addChild(cone);
 
@@ -373,6 +388,7 @@ void Window::idleCallback()
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
 	// Perform any updates as necessary. 
 
 	/*
@@ -415,6 +431,7 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Clear the color and depth buffers.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthRange(0.0, 2.0);
 
 	//sky box	
 	glDepthMask(GL_FALSE);
@@ -432,7 +449,12 @@ void Window::displayCallback(GLFWwindow* window)
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	rocket->draw(program, glm::mat4(1));
+	//rocket->draw(program, glm::mat4(1));
+
+	glUseProgram(modelProgram);
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	launcher->draw(modelProgram, glm::mat4(1.0f));
 
 	/*
 	//building scene graph
@@ -527,6 +549,8 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+
 	camFront = glm::normalize(direction);
 }
 
@@ -606,15 +630,19 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			{
 			case GLFW_KEY_W:
 				camPos += camSpeed * camFront;
+				//launcher->update(glm::translate(glm::mat4(1.0f), camSpeed * camFront));
 				break;
 			case GLFW_KEY_S:
 				camPos -= camSpeed * camFront;
+				//launcher->update(glm::translate(glm::mat4(1.0f), -camSpeed * camFront));
 				break;
 			case GLFW_KEY_A:
 				camPos -= glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				//launcher->update(glm::translate(glm::mat4(1.0f), -glm::normalize(glm::cross(camFront, camUp)) * camSpeed));
 				break;
 			case GLFW_KEY_D:
 				camPos += glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				//launcher->update(glm::translate(glm::mat4(1.0f), glm::normalize(glm::cross(camFront, camUp)) * camSpeed));
 				break;
 			case GLFW_KEY_C:
 				controlModeNum = 1;

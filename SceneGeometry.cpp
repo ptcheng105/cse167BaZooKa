@@ -105,11 +105,14 @@ PointsObj SceneGeometry::getPoints2(std::string filename) {
 	}
 	return retObj;
 };
+
+
 SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number)
 {
 	//parse from obj file
 
 	PointsObj pointObj;
+
 	if (use_getPoint_number == 1) {
 		pointObj = this->getPoints(objFilename);
 	}
@@ -150,6 +153,7 @@ SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number)
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
 
 	// Unbind from the VBO.
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
