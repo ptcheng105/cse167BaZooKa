@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtx/string_cast.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -30,7 +31,7 @@
 #include "SceneGeometry.h"
 #include "BezierCurveGeometry.h"
 #include "SceneObject.h"
-
+#include "Rocket.h"
 class Window
 {
 public:

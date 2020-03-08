@@ -19,7 +19,7 @@ private:
 	std::vector<glm::vec3> hitbox_vertices;
 	GLuint hitbox_vao;
 	GLuint hitbox_vbos[2];
-
+	PointsObj pointObj;
 public:
 	bool drawHitbox = true;
 	glm::vec3 hitbox_color = glm::vec3(1,1,1);
@@ -35,7 +35,8 @@ public:
 
 	void draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C);
 	void update(glm::mat4 C);
-	bool collidedWith(SceneGeometry* targetObj);
+
+	std::vector<float> getXYZMaxMin(glm::mat4 C);
 };
 
 #endif

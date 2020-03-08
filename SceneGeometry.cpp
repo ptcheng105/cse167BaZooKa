@@ -111,13 +111,17 @@ SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, G
 	//set hitbox_program to hit_box_prog
 	hitbox_program = hitbox_prog;
 	//parse from obj file
-	PointsObj pointObj;
+
 	if (use_getPoint_number == 1) {
 		pointObj = this->getPoints(objFilename);
 	}
 	else {
 		pointObj = this->getPoints2(objFilename);
 	}
+
+	points = pointObj.v;
+	normals = pointObj.vn;
+	indices = pointObj.f;
 
 	//shift the model to center of the object space
 	float x_mid = (pointObj.x_max + pointObj.x_min) / 2;
@@ -127,11 +131,7 @@ SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, G
 		points[i] = points[i] - glm::vec3(x_mid, y_mid, z_mid);
 	}
 
-	hitbox_half_dimension = glm::vec3((pointObj.x_max - x_mid),(pointObj.y_max - y_mid),(pointObj.z_max-z_mid));
-
-	points = pointObj.v;
-	normals = pointObj.vn;
-	indices = pointObj.f;
+	hitbox_half_dimension = glm::vec3((pointObj.x_max - x_mid), (pointObj.y_max - y_mid), (pointObj.z_max - z_mid));
 
 	// Generate a vertex array (VAO) and a vertex buffer objects (VBO).
 	glGenVertexArrays(1, &vao);
@@ -161,57 +161,6 @@ SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, G
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	// Unbind from the VAO.
 	glBindVertexArray(0);
-	//hit box
-	hitbox_vertices = {
-		glm::vec3(-hitbox_half_dimension.x, hitbox_half_dimension.y, hitbox_half_dimension.z),
-		glm::vec3(-hitbox_half_dimension.x, -hitbox_half_dimension.y, hitbox_half_dimension.z),
-		glm::vec3(hitbox_half_dimension.x, -hitbox_half_dimension.y, hitbox_half_dimension.z),
-		glm::vec3(hitbox_half_dimension.x, hitbox_half_dimension.y, hitbox_half_dimension.z),
-		glm::vec3(-hitbox_half_dimension.x, hitbox_half_dimension.y, -hitbox_half_dimension.z),
-		glm::vec3(-hitbox_half_dimension.x, -hitbox_half_dimension.y, -hitbox_half_dimension.z),
-		glm::vec3(hitbox_half_dimension.x, -hitbox_half_dimension.y, -hitbox_half_dimension.z),
-		glm::vec3(hitbox_half_dimension.x, hitbox_half_dimension.y, -hitbox_half_dimension.z)
-	};
-	// Each ivec3(v1, v2, v3) define a triangle consists of vertices v1, v2 
-	// and v3 in counter-clockwise order.
-	std::vector<glm::ivec3> hitbox_indices
-	{
-		// Front face.
-		glm::ivec3(0, 1, 2),glm::ivec3(2, 3, 0),
-		// Back face.
-		glm::ivec3(7, 6, 5),glm::ivec3(5, 4, 7),
-		// Right face.
-		glm::ivec3(3, 2, 6),glm::ivec3(6, 7, 3),
-		// Left face.
-		glm::ivec3(4, 5, 1),glm::ivec3(1, 0, 4),
-		// Top face.
-		glm::ivec3(4, 0, 3),glm::ivec3(3, 7, 4),
-		// Bottom face.
-		glm::ivec3(1, 5, 6),glm::ivec3(6, 2, 1),
-	};
-	// Generate a vertex array (VAO) and two vertex buffer objects (VBO).
-	glGenVertexArrays(1, &hitbox_vao);
-	glGenBuffers(2, hitbox_vbos);
-	// Bind to the VAO.
-	glBindVertexArray(hitbox_vao);
-	// Bind to the first VBO. We will use it to store the vertices.
-	glBindBuffer(GL_ARRAY_BUFFER, hitbox_vbos[0]);
-	// Pass in the data.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * hitbox_vertices.size(),
-		hitbox_vertices.data(), GL_STATIC_DRAW);
-	// Enable vertex attribute 0. 
-	// We will be able to access vertices through it.
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	// Bind to the second VBO. We will use it to store the indices.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hitbox_vbos[1]);
-	// Pass in the data.
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * hitbox_indices.size(),
-		hitbox_indices.data(), GL_STATIC_DRAW);
-	// Unbind from the VBOs.
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// Unbind from the VAO.
-	glBindVertexArray(0);
 }
 
 
@@ -220,32 +169,15 @@ SceneGeometry::~SceneGeometry()
 	glDeleteBuffers(1, &vbo[0]);
 	glDeleteBuffers(1, &vbo[1]);
 	glDeleteVertexArrays(1, &vao);
-
-	// Delete the VBOs and the VAO.
-	glDeleteBuffers(2, hitbox_vbos);
-	glDeleteVertexArrays(1, &hitbox_vao);
 }
 
 void SceneGeometry::draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C)
 {
-	if (drawHitbox) {
-		//draw hitbox
-		glUseProgram(hitbox_program);
-		glBindVertexArray(hitbox_vao);
-		glUniformMatrix4fv(glGetUniformLocation(hitbox_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(glGetUniformLocation(hitbox_program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(hitbox_program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(glGetUniformLocation(hitbox_program, "color"), 1, glm::value_ptr(hitbox_color));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glBindVertexArray(0);
-	}
+	model = C;
 
 	glUseProgram(shaderProgram);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	//model = C;
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 	// Bind to the VAO.
 	glBindVertexArray(vao);
@@ -258,11 +190,25 @@ void SceneGeometry::draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 v
 
 void SceneGeometry::update(glm::mat4 C) {
 	model = C * model;
-	origin_in_world = C * glm::vec4(origin_in_world,1);
 }
 
-bool SceneGeometry::collidedWith(SceneGeometry* targetObj) {
-	return (origin_in_world.x - hitbox_half_dimension.x <= targetObj->origin_in_world.x + targetObj->hitbox_half_dimension.x && origin_in_world.x + hitbox_half_dimension.x >= targetObj->origin_in_world.x - targetObj->hitbox_half_dimension.x)&&
-		(origin_in_world.y - hitbox_half_dimension.y <= targetObj->origin_in_world.y + targetObj->hitbox_half_dimension.y && origin_in_world.y + hitbox_half_dimension.y >= targetObj->origin_in_world.y - targetObj->hitbox_half_dimension.y) &&
-		(origin_in_world.z - hitbox_half_dimension.z <= targetObj->origin_in_world.z + targetObj->hitbox_half_dimension.z && origin_in_world.z + hitbox_half_dimension.z >= targetObj->origin_in_world.z - targetObj->hitbox_half_dimension.z);
+std::vector<float> SceneGeometry::getXYZMaxMin(glm::mat4 C) {
+	//now we know the final transformation, find out where the point cloud locate in world after transformation
+	std::vector<glm::vec3> transformed_points = points;
+	for (int i = 0; i < points.size(); i++) {
+		transformed_points[i] = C * glm::vec4(points[i],1.0f);
+	}
+	float xMax, yMax, zMax, xMin, yMin, zMin;
+	xMax = yMax = zMax = -FLT_MAX;
+	xMin = yMin = zMin = FLT_MAX;
+	for (int i = 0; i < transformed_points.size(); i++) {
+		if (transformed_points[i].x > xMax) { xMax = transformed_points[i].x; };
+		if (transformed_points[i].x < xMin) { xMin = transformed_points[i].x; };
+		if (transformed_points[i].y > yMax) { yMax = transformed_points[i].y; };
+		if (transformed_points[i].y < yMin) { yMin = transformed_points[i].y; };
+		if (transformed_points[i].z > zMax) { zMax = transformed_points[i].z; };
+		if (transformed_points[i].z < zMin) { zMin = transformed_points[i].z; };
+	}
+
+	return { xMax ,xMin, yMax, yMin, zMax, zMin};
 }

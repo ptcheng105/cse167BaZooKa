@@ -26,14 +26,14 @@ namespace
 	SceneGeometry* cylinder, * cone, * sphere;
 
 	//rocket
-	SceneObject* rocket1;
+	Rocket * rocket1;
 
 	// target
-	SceneObject* target;
+	SceneObject* test_obj1, *test_obj2;
 
 	//Identity matrix
 	const glm::mat4 IM = glm::mat4(1.0f);
-	glm::vec3 eye(0, 0, 3); // Camera position.
+	glm::vec3 eye(0, 0, 15); // Camera position.
 	glm::vec3 center(0, 0, 0); // The point we are looking at.
 	glm::vec3 up(0, 1, 0); // The up direction of the camera.
 	float fovy = 60;
@@ -54,7 +54,7 @@ namespace
 	bool rotating = false;
 
 	// for camera controls
-	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 15.0f);
 	glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
@@ -114,48 +114,12 @@ bool Window::initializeObjects()
 	// create skybox
 	skybox = new SkyBox();
 
-	/*
-	// create Rocket
-	SceneTransform* rocketHead, * rocketBody, * jet_flame,
-		* jet_flame_base, * jet_flame_spike_1, * jet_flame_spike_2,
-		* jet_flame_spike_3, * jet_flame_spike_4;
-	rocketHead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
-	rocketHead->addChild(cone);
-
-	rocketBody = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f)));
-	rocketBody->addChild(cylinder);
-
-	jet_flame = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1, 0, 0)));
-	jet_flame_base = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1.1, 1.1, 1.1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, -1.5, 0)));
-	jet_flame_spike_1 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(1, 0, 0), glm::vec3(0, 1.5, 0)));
-	jet_flame_spike_2 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(-1, 0, -1), glm::vec3(0, 1.5, 0)));
-	jet_flame_spike_3 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(-1, 0, 1), glm::vec3(0, 1.5, 0)));
-	jet_flame_spike_4 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 7.0f, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)));
-	jet_flame_base->addChild(sphere);
-	jet_flame_spike_1->addChild(cone);
-	jet_flame_spike_2->addChild(cone);
-	jet_flame_spike_3->addChild(cone);
-	jet_flame_spike_4->addChild(cone);
-	jet_flame->addChild(jet_flame_base);
-	jet_flame->addChild(jet_flame_spike_1);
-	jet_flame->addChild(jet_flame_spike_2);
-	jet_flame->addChild(jet_flame_spike_3);
-	jet_flame->addChild(jet_flame_spike_4);
-	SceneTransform* flatten_rocket = new SceneTransform(glm::rotate(glm::mat4(1.0f), glm::radians((float)-90.0), glm::vec3(1, 0, 0)));
-	flatten_rocket->addChild(rocketHead);
-	flatten_rocket->addChild(rocketBody);
-	flatten_rocket->addChild(jet_flame);
-
-	rocket1 = new SceneObject(IM, flatten_rocket, glm::vec3(5,5,5));
-	rocket1->setObjVelocity(glm::vec3(0, 0, -0.001));
-
-	// create Target
-	SceneTransform* pole;
-	pole = new SceneTransform(glm::scale(IM, glm::vec3(5,5,5)));
-	pole->addChild(cylinder);
-	target = new SceneObject(glm::translate(IM,glm::vec3(0,0,-30)) , pole, glm::vec3(5, 5, 5));
-	*/
-
+	//rocket
+	rocket1 = new Rocket(glm::vec3(-7, 0, 0), cylinder, cone, sphere, colorProgram);
+	rocket1->rotateObj(90.0f, glm::vec3(1, 1, 1));
+	rocket1->velocity = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 1, 1)) * glm::vec4(glm::vec3(0, 0.001, 0),1);
+	test_obj1 = new SceneObject(glm::vec3(10, 0, 10), colorProgram);
+	test_obj1->velocity = glm::vec3(-0.005, 0, 0);
 	return true;
 }
 
@@ -167,7 +131,7 @@ void Window::cleanUp()
 	delete sphere;
 	delete skybox;
 	delete rocket1;
-	delete target;
+	delete test_obj1, test_obj2;
 
 	glDeleteProgram(program);
 	glDeleteProgram(skyBoxProgram);
@@ -252,19 +216,17 @@ void Window::resizeCallback(GLFWwindow* window, int w, int h)
 void Window::idleCallback()
 {
 	// Perform any updates as necessary.
-	
-	// move target away
-	cylinder->update(glm::translate(IM, glm::vec3(0,0.001,0)));
+	test_obj1->idleUpdate();
+	rocket1->idleUpdate();
 
 	//check collision
-	std::cout << "collided: "<< cone->collidedWith(cylinder) << std::endl;
-	if (cone->collidedWith(cylinder)) {
-		cone->hitbox_color = glm::vec3(1, 0, 0);
-		cylinder->hitbox_color = glm::vec3(1, 0, 0);
+	if (rocket1->isCollidedWith(test_obj1)) {
+		rocket1->resolveCollision(true);
+		test_obj1->resolveCollision(true);
 	}
 	else {
-		cone->hitbox_color = glm::vec3(1, 1, 0);
-		cylinder->hitbox_color = glm::vec3(1, 1, 0);
+		rocket1->resolveCollision(false);
+		test_obj1->resolveCollision(false);
 	}
 
 	float currentFrame = glfwGetTime();
@@ -299,23 +261,10 @@ void Window::displayCallback(GLFWwindow* window)
 	glDisable(GL_CULL_FACE);
 
 	//draw test obj
-	cone->draw(program,projection,view,glm::mat4(1));
-	cylinder->draw(program, projection, view, glm::mat4(1));
+	test_obj1->drawObject(program, projection, view);
 
-	/*
 	//draw rocket
-	glUseProgram(program);
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	rocket1->draw(program, glm::mat4(1));
-
-	//draw target
-	glUseProgram(program);
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	target->draw(program, glm::mat4(1));
-
-	*/
+	rocket1->drawObject(program, projection, view);
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
 	glfwPollEvents();

@@ -1,14 +1,6 @@
 #include "Rocket.h"
-Rocket::Rocket(SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere) {
-	initRocket(cylinder, cone, sphere);
-}
-
-Rocket::Rocket(glm::mat4 MT, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere): SceneObject(MT){
-	initRocket(cylinder, cone, sphere);
-}
-
-void Rocket::initRocket(SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere) {
-	//initialize the object scene here
+Rocket::Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog): SceneObject(position_in_world, hitbox_prog) {
+	//set hitbox_program to hit_box_prog
 	rocketHead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
 	rocketHead->addChild(cone);
 
@@ -32,14 +24,35 @@ void Rocket::initRocket(SceneGeometry* cylinder, SceneGeometry* cone, SceneGeome
 	jet_flame->addChild(jet_flame_spike_3);
 	jet_flame->addChild(jet_flame_spike_4);
 
+	this_object->addChild(rocketHead);
+	this_object->addChild(rocketBody);
+	this_object->addChild(jet_flame);
 
-	SceneTransform* flatten_rocket = new SceneTransform(glm::rotate(glm::mat4(1.0f), glm::radians((float)-90.0), glm::vec3(1, 0, 0)));
-	//rocket = new SceneTransform(glm::mat4(1));
-	flatten_rocket->addChild(rocketHead);
-	flatten_rocket->addChild(rocketBody);
-	flatten_rocket->addChild(jet_flame);
+	//find out the max points in rocket
+	XYZMaxMin = this_object->getXYZMaxMin(glm::mat4(1));
 
-	this_object->addChild(flatten_rocket);
+	//find object center
+	float x_mid = (XYZMaxMin[0] + XYZMaxMin[1]) / 2;
+	float y_mid = (XYZMaxMin[2] + XYZMaxMin[3]) / 2;
+	float z_mid = (XYZMaxMin[4] + XYZMaxMin[5]) / 2;
+	hitbox_half_dimension = glm::vec3((XYZMaxMin[0] - x_mid), (XYZMaxMin[2] - y_mid), (XYZMaxMin[4] - z_mid));
+
+	//shift the combined model this object to the center of object space
+	this_object->update(glm::translate(glm::mat4(1), glm::vec3(-x_mid, -y_mid, -z_mid)));
+
+	//hit box
+	hitbox_vertices = {
+		glm::vec3(-hitbox_half_dimension.x, hitbox_half_dimension.y, hitbox_half_dimension.z),
+		glm::vec3(-hitbox_half_dimension.x, -hitbox_half_dimension.y, hitbox_half_dimension.z),
+		glm::vec3(hitbox_half_dimension.x, -hitbox_half_dimension.y, hitbox_half_dimension.z),
+		glm::vec3(hitbox_half_dimension.x, hitbox_half_dimension.y, hitbox_half_dimension.z),
+		glm::vec3(-hitbox_half_dimension.x, hitbox_half_dimension.y, -hitbox_half_dimension.z),
+		glm::vec3(-hitbox_half_dimension.x, -hitbox_half_dimension.y, -hitbox_half_dimension.z),
+		glm::vec3(hitbox_half_dimension.x, -hitbox_half_dimension.y, -hitbox_half_dimension.z),
+		glm::vec3(hitbox_half_dimension.x, hitbox_half_dimension.y, -hitbox_half_dimension.z)
+	};
+	bindHitboxData();
+	
 }
 
 Rocket::~Rocket() {
@@ -51,12 +64,7 @@ Rocket::~Rocket() {
 	delete(jet_flame_spike_2);
 	delete(jet_flame_spike_3);
 	delete(jet_flame_spike_4);
-}
-
-void Rocket::drawObject(GLuint shaderProgram, glm::mat4 C) {
-	this_object->draw(shaderProgram, C);
-}
-
-void Rocket::move() {
-	this_object->update(glm::translate(glm::mat4(1.0f), velocity));
+	// Delete the VBOs and the VAO.
+	glDeleteBuffers(2, hitbox_vbos);
+	glDeleteVertexArrays(1, &hitbox_vao);
 }

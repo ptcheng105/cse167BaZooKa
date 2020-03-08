@@ -4,32 +4,48 @@
 #include "SceneTransform.h"
 #include "SceneGeometry.h"
 #include <glm/gtc/type_ptr.hpp>
-
+struct SATtest_return {
+	float min;
+	float max;
+};
 class SceneObject
 {
-protected:
-	SceneTransform * world2object;
-	SceneTransform * this_object;
-	glm::vec4 world_position = glm::vec4(0,0,0,1);
-	glm::vec3 velocity = glm::vec3(0,0,0);
+public:
+	glm::mat4 translateTM;
+	glm::mat4 rot_scaleTM;
+	SceneTransform* this_object;
+
+	//physics
+	glm::vec4 position_in_world;
+	glm::vec3 velocity = glm::vec3(0, 0, 0);
 
 	//hitbox
+	GLuint hitbox_program;
 	glm::mat4 hitbox_model;
 	std::vector<glm::vec3> hitbox_vertices;
+	std::vector<glm::ivec3> hitbox_indices;
 	glm::vec3 hitbox_half_dimension;
 	GLuint hitbox_vao;
 	GLuint hitbox_vbos[2];
+	bool drawHitbox = true;
+	glm::vec3 hitbox_color = glm::vec3(1, 1, 1);
+	std::vector<float> XYZMaxMin;
 
-public:
-	SceneObject(glm::mat4 MT, SceneTransform* object, glm::vec3 hitbox_half_dimension);
+	SceneObject(glm::vec3 position_in_world, GLuint hitbox_prog);
 	~SceneObject();
 
-	void setObjVelocity(glm::vec3 vec);
-	void draw(GLuint shaderProgram, glm::mat4 C);
-	void update();
-	void objUpdate(glm::mat4 C);
-	void isCollidedWith(SceneObject* targetObj);
-	void collided();
+	void bindHitboxData();
+
+	void drawObject(GLuint shaderProgram, glm::mat4 projection, glm::mat4 view);
+	void idleUpdate();
+
+	bool isCollidedWith(SceneObject* targetObj);
+	void resolveCollision(bool collided);
+	void rotateObj(float deg, glm::vec3 rotAxis);
+	void SATtest(const glm::vec3& axis, const std::vector<glm::vec3>& pointSet, float& minInAxis, float& maxInAxis);
+	std::vector<glm::vec3> getHitboxCorners();
+	bool overlaps(float min1, float max1, float min2, float max2);
+	bool isBetweenOrdered(float val, float lowerBound, float upperBound);
 };
 
 #endif
