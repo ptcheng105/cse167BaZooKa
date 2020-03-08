@@ -9,51 +9,29 @@
 namespace
 {
 	int width, height;
-	std::string windowTitle("GLFW Starter Project");
+	std::string windowTitle("BaZooKa!");
 
-	//scene graph
-	SceneTransform *Robot;
-	SceneTransform* RobotArmy;
 	// Boolean switches
 	bool glRasterize = true;
 	bool lightMode = false;
 	GLint lightModeNum = 1;
 	int controlModeNum = 1; // 1 = control model, 2 = control point light
-
-	Cube* cube;
-	PointCloud* cubePoints, *bunnyPoints, *dragonPoints, *bearPoints, *currentObj;
-	LightSrc* lamp;
-	directLightSrc* dirlight;
-	RasterizerQuad* quad;  // Object textured with your rasterization results
 	
 	SkyBox* skybox;
 	//word transform
 	SceneTransform* world;
-	//robot geo and transform
-	SceneGeometry* BodyGeometry, * LimbGeometry, * HeadGeometry, * EyeGeometry, * AntennaGeometry;
-	SceneTransform* robotbody, * robothead, * robotLeye, * robotReye, * robotLantenna, * robotRantenna,
-		* robotLarm, * robotRarm, * robotLleg, * robotRleg;
-	SceneTransform* robotArmyRotationLayer;
 
-	//robot animation
-	float swingDeg = 0;
-	float swingDegPerFrame = -0.5;
+	//basic scene geometry
+	SceneGeometry* cylinder, * cone, * sphere;
 
 	//rocket
-	SceneGeometry* cylinder, * cone, *sphere;
-	SceneTransform* rocketHead, * rocketBody, * rocket;
+	SceneObject* rocket1;
 
-	//curve
-	SceneTransform *curvepath;
-	BezierCurveGeometry *curve1, * curve2, *curve3, *curve4, *curve5;
+	// target
+	SceneObject* target;
 
-	//curve animation
-	std::vector<glm::vec3> all_curve_point;
-	int num_of_total_curve_point, current_step=0, step_per_frame=1;
-	glm::vec3 last_curve_point = glm::vec3(0, 0, 0);
-	int delay_army_movement_counter = 0;
-	int delay_army_movement_frames = 5;
-
+	//Identity matrix
+	const glm::mat4 IM = glm::mat4(1.0f);
 	glm::vec3 eye(0, 0, 20); // Camera position.
 	glm::vec3 center(0, 0, 0); // The point we are looking at.
 	glm::vec3 up(0, 1, 0); // The up direction of the camera.
@@ -64,11 +42,7 @@ namespace
 	glm::mat4 projection; // Projection matrix.
 
 	GLuint program; // The shader program id.
-	GLuint projectionLoc; // Location of projection in shader.
-	GLuint curveProgram, skyBoxProgram; // lighting shader program.
-	GLuint viewLoc; // Location of view in shader.
-	GLuint modelLoc; // Location of model in shader.
-	GLuint colorLoc; // Location of color in shader.
+	GLuint colorProgram, skyBoxProgram;
 
 	GLuint lightPosLoc; //location of light pos in shader
 	GLuint programQuad;
@@ -89,7 +63,7 @@ bool Window::initializeProgram()
 	skyBoxProgram = LoadShaders("shaders/skyBoxShader.vert", "shaders/skyBoxShader.frag");
 
 	//load curve shader
-	curveProgram = LoadShaders("shaders/curve.vert", "shaders/curve.frag");
+	colorProgram = LoadShaders("shaders/colorShader.vert", "shaders/colorShader.frag");
 
 	// Check the shader programs.
 	if (!program)
@@ -102,47 +76,44 @@ bool Window::initializeProgram()
 		std::cerr << "Failed to initialize sky box program" << std::endl;
 		//return false;
 	}
-	if (!curveProgram)
+	if (!colorProgram)
 	{
-		std::cerr << "Failed to initialize curve program" << std::endl;
+		std::cerr << "Failed to initialize color program" << std::endl;
 		//return false;
 	}
 
-
 	// Activate the shader program.
 	glUseProgram(program);
-	// Get the locations of uniform variables.
-	projectionLoc = glGetUniformLocation(program, "projection");
-	viewLoc = glGetUniformLocation(program, "view");
-	modelLoc = glGetUniformLocation(program, "model");
-	colorLoc = glGetUniformLocation(program, "color");
 
 	return true;
 }
 
 bool Window::initializeObjects()
 {
+	// create all the geometry in geometry library
+	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
+	cone = new SceneGeometry("cone.obj", 2, colorProgram);
+	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
 	// create skybox
 	skybox = new SkyBox();
 
-
-	// create cylinder and cone
-	cylinder = new SceneGeometry("body_s.obj", 1);
-	cone = new SceneGeometry("cone.obj", 2);
-	sphere = new SceneGeometry("sphere.obj", 2);
-
+	/*
+	// create Rocket
+	SceneTransform* rocketHead, * rocketBody, * jet_flame,
+		* jet_flame_base, * jet_flame_spike_1, * jet_flame_spike_2,
+		* jet_flame_spike_3, * jet_flame_spike_4;
 	rocketHead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
 	rocketHead->addChild(cone);
 
 	rocketBody = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f)));
 	rocketBody->addChild(cylinder);
 
-	SceneTransform *jet_flame = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.0f, 0.0f))* glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1,0,0)));
-	SceneTransform* jet_flame_base = new SceneTransform(scaleRotateTranslate(glm::vec3(1.1, 1.1, 1.1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, -1.5, 0)));
-	SceneTransform* jet_flame_spike_1 = new SceneTransform(scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1,0,0), glm::vec3(0,0,0)) * translateRotateTranslate(-50.0f, glm::vec3(1, 0, 0), glm::vec3(0, 1.5, 0)));
-	SceneTransform* jet_flame_spike_2 = new SceneTransform(scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * translateRotateTranslate(-50.0f, glm::vec3(-1, 0, -1), glm::vec3(0, 1.5, 0)));
-	SceneTransform* jet_flame_spike_3 = new SceneTransform(scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * translateRotateTranslate(-50.0f, glm::vec3(-1, 0, 1), glm::vec3(0, 1.5, 0)));
-	SceneTransform* jet_flame_spike_4 = new SceneTransform(scaleRotateTranslate(glm::vec3(1, 7.0f, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)));
+	jet_flame = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1, 0, 0)));
+	jet_flame_base = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1.1, 1.1, 1.1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, -1.5, 0)));
+	jet_flame_spike_1 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(1, 0, 0), glm::vec3(0, 1.5, 0)));
+	jet_flame_spike_2 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(-1, 0, -1), glm::vec3(0, 1.5, 0)));
+	jet_flame_spike_3 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 1, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)) * Window::translateRotateTranslate(-50.0f, glm::vec3(-1, 0, 1), glm::vec3(0, 1.5, 0)));
+	jet_flame_spike_4 = new SceneTransform(Window::scaleRotateTranslate(glm::vec3(1, 7.0f, 1), 0.0f, glm::vec3(1, 0, 0), glm::vec3(0, 0, 0)));
 	jet_flame_base->addChild(sphere);
 	jet_flame_spike_1->addChild(cone);
 	jet_flame_spike_2->addChild(cone);
@@ -153,97 +124,19 @@ bool Window::initializeObjects()
 	jet_flame->addChild(jet_flame_spike_2);
 	jet_flame->addChild(jet_flame_spike_3);
 	jet_flame->addChild(jet_flame_spike_4);
+	SceneTransform* flatten_rocket = new SceneTransform(glm::rotate(glm::mat4(1.0f), glm::radians((float)-90.0), glm::vec3(1, 0, 0)));
+	flatten_rocket->addChild(rocketHead);
+	flatten_rocket->addChild(rocketBody);
+	flatten_rocket->addChild(jet_flame);
 
+	rocket1 = new SceneObject(IM, flatten_rocket, glm::vec3(5,5,5));
+	rocket1->setObjVelocity(glm::vec3(0, 0, -0.001));
 
-	rocket = new SceneTransform(glm::rotate(glm::mat4(1.0f), glm::radians((float)90.0), glm::vec3(1,0,0)));
-	//rocket = new SceneTransform(glm::mat4(1));
-	rocket->addChild(rocketHead);
-	rocket->addChild(rocketBody);
-	rocket->addChild(jet_flame);
-	/*
-	//create curve
-	curvepath = new SceneTransform(glm::mat4(1));
-	float num_of_points_on_curve= 150.0f;
-	curve1 = new BezierCurveGeometry(glm::vec3(0, 0, 0), glm::vec3(0, 0, 20), glm::vec3(0, 20, 20), glm::vec3(0, 20, 40), num_of_points_on_curve);
-	curve2 = new BezierCurveGeometry(glm::vec3(0, 20, 40), glm::vec3(0, 20, 60), glm::vec3(0, 0, 60), glm::vec3(0, 0, 80), num_of_points_on_curve);
-	curve3 = new BezierCurveGeometry(glm::vec3(0, 0, 80), glm::vec3(0, 0, 90), glm::vec3(40, 0, 90), glm::vec3(40, 0, 80), num_of_points_on_curve);
-	curve4 = new BezierCurveGeometry(glm::vec3(40, 0, 80), glm::vec3(40, 0, 40), glm::vec3(80, 0, 80), glm::vec3(40, 0, 20), num_of_points_on_curve);
-	curve5 = new BezierCurveGeometry(glm::vec3(40, 0, 20), glm::vec3(0, 0, -40), glm::vec3(0, 0, -20), glm::vec3(0, 0, 0), num_of_points_on_curve);
-	curvepath->addChild(curve1);
-	curvepath->addChild(curve2);
-	curvepath->addChild(curve3);
-	curvepath->addChild(curve4);
-	curvepath->addChild(curve5);
-
-	//store curve point
-	all_curve_point.insert(all_curve_point.end(), curve1->curve_points.begin(), curve1->curve_points.end());
-	all_curve_point.insert(all_curve_point.end(), curve2->curve_points.begin(), curve2->curve_points.end());
-	all_curve_point.insert(all_curve_point.end(), curve3->curve_points.begin(), curve3->curve_points.end());
-	all_curve_point.insert(all_curve_point.end(), curve4->curve_points.begin(), curve4->curve_points.end());
-	all_curve_point.insert(all_curve_point.end(), curve5->curve_points.begin(), curve5->curve_points.end());
-	num_of_total_curve_point = all_curve_point.size();
-
-	// create robot geometry
-	LimbGeometry = new SceneGeometry("limb_s.obj");
-	BodyGeometry = new SceneGeometry("body_s.obj");
-	HeadGeometry = new SceneGeometry("head_s.obj");
-	EyeGeometry = new SceneGeometry("eyeball_s.obj");
-	AntennaGeometry = new SceneGeometry("antenna_s.obj");
-
-	// create robot parts (transform)
-	Robot = new SceneTransform(glm::mat4(1.0f));
-
-	// robot head and body
-	robothead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.2f, 0.0f)));
-	robotbody = new SceneTransform(glm::mat4(1));
-	Robot->addChild(robothead);
-	Robot->addChild(robotbody);
-	robothead->addChild(HeadGeometry);
-	robotbody->addChild(BodyGeometry);
-
-	//robot eyes
-	robotLeye = new SceneTransform(scaleRotateTranslate(glm::vec3(1.2, 1.2, 1.2), 0.0, glm::vec3(0, 0, 1), glm::vec3(-0.5f, 1.5f, 0.8f)));
-	robotReye = new SceneTransform(scaleRotateTranslate(glm::vec3(1.2, 1.2, 1.2), 0.0, glm::vec3(0, 0, 1), glm::vec3(0.5f, 1.5f, 0.8f)));
-	Robot->addChild(robotLeye);
-	Robot->addChild(robotReye);
-	robotLeye->addChild(EyeGeometry);
-	robotReye->addChild(EyeGeometry);
-
-	//robot antenna
-	robotLantenna = new SceneTransform(scaleRotateTranslate(glm::vec3(0.2, 0.2, 0.2), 30.0, glm::vec3(0,0,1), glm::vec3(-0.8,1.8,0)));
-	robotRantenna = new SceneTransform(scaleRotateTranslate(glm::vec3(0.2, 0.2, 0.2), -30.0, glm::vec3(0, 0, 1), glm::vec3(0.8,1.8,0)));
-	Robot->addChild(robotLantenna);
-	Robot->addChild(robotRantenna);
-	robotLantenna->addChild(AntennaGeometry);
-	robotRantenna->addChild(AntennaGeometry);
-
-	//robot arm
-	robotLarm = new SceneTransform(translateRotateTranslate(-22.5, glm::vec3(1, 0, 0), glm::vec3(0, -0.8, 0)) * scaleRotateTranslate(glm::vec3(1.4, 1.4, 1.4), 0.0, glm::vec3(0, 0, 1), glm::vec3(-1.3f, 0.2f, 0.0f)));
-	robotRarm = new SceneTransform(translateRotateTranslate(-22.5, glm::vec3(1, 0, 0), glm::vec3(0, -0.8, 0)) * scaleRotateTranslate(glm::vec3(1.4, 1.4, 1.4), 0.0, glm::vec3(0, 0, 1), glm::vec3(1.3f, 0.2f, 0.0f)));
-	Robot->addChild(robotLarm);
-	Robot->addChild(robotRarm);
-	robotLarm->addChild(LimbGeometry);
-	robotRarm->addChild(LimbGeometry);
-
-	//robot leg
-	robotLleg = new SceneTransform(scaleRotateTranslate(glm::vec3(1.4, 1.4, 1.4), 0.0, glm::vec3(0, 0, 1), glm::vec3(-0.5f, -1.4f, 0.0f)));
-	robotRleg = new SceneTransform(scaleRotateTranslate(glm::vec3(1.4, 1.4, 1.4), 0.0, glm::vec3(0, 0, 1), glm::vec3(0.5f, -1.4f, 0.0f)));
-	Robot->addChild(robotLleg);
-	Robot->addChild(robotRleg);
-	robotLleg->addChild(LimbGeometry);
-	robotRleg->addChild(LimbGeometry);
-
-	//army of robot
-	RobotArmy = new SceneTransform(glm::mat4(1.0f));
-	robotArmyRotationLayer = new SceneTransform(glm::mat4(1.0f));
-	RobotArmy->addChild(robotArmyRotationLayer);
-	for (int i = -2; i < 3; i++) {
-		for (int j = -2; j < 3; j++) {
-			SceneTransform* oneRobot = new SceneTransform(glm::translate(glm::mat4(1), glm::vec3(i * 3, 0 , j * 3)));
-			oneRobot->addChild(Robot);
-			robotArmyRotationLayer->addChild(oneRobot);
-		}
-	}
+	// create Target
+	SceneTransform* pole;
+	pole = new SceneTransform(glm::scale(IM, glm::vec3(5,5,5)));
+	pole->addChild(cylinder);
+	target = new SceneObject(glm::translate(IM,glm::vec3(0,0,-30)) , pole, glm::vec3(5, 5, 5));
 	*/
 
 	return true;
@@ -252,17 +145,16 @@ bool Window::initializeObjects()
 void Window::cleanUp()
 {
 	// Deallcoate the objects.
-	delete cube;
-	delete cubePoints;
-	delete quad;
-	delete bunnyPoints;
-	delete dragonPoints;
-	delete bearPoints;
-	delete lamp;
+	delete cylinder;
+	delete cone;
+	delete sphere;
+	delete skybox;
+	delete rocket1;
+	delete target;
 
-	// Delete the shader programs.
 	glDeleteProgram(program);
-	glDeleteProgram(programQuad);
+	glDeleteProgram(skyBoxProgram);
+	glDeleteProgram(colorProgram);
 }
 
 GLFWwindow* Window::createWindow(int width, int height)
@@ -316,10 +208,6 @@ GLFWwindow* Window::createWindow(int width, int height)
 
 	// Set swap interval to 1.
 	glfwSwapInterval(0);
-	
-	// Initialize the quad that will be textured with your image
-	// The quad must be made with the window
-	quad = new RasterizerQuad(width, height);
 
 	// Call the resize callback to make sure things get drawn immediately.
 	Window::resizeCallback(window, width, height);
@@ -336,9 +224,6 @@ void Window::resizeCallback(GLFWwindow* window, int w, int h)
 	width = w;
 	height = h;
 
-	// Resize our CPU rasterizer's pixel buffer and zbuffer
-	quad->updateBufSiz(width, height);
-
 	// Set the viewport size.
 	glViewport(0, 0, width, height);
 
@@ -349,38 +234,21 @@ void Window::resizeCallback(GLFWwindow* window, int w, int h)
 
 void Window::idleCallback()
 {
-	// Perform any updates as necessary. 
+	// Perform any updates as necessary.
+	
+	// move target away
+	cylinder->update(glm::translate(IM, glm::vec3(0,0.001,0)));
 
-	/*
-	// walk animation
-	//if swing deg reaches -90 or +45, reverse
-	if (swingDeg >= 67.5 || swingDeg <= -67.5) {
-		swingDegPerFrame = -1 * swingDegPerFrame;
-	}
-	swingDeg += swingDegPerFrame;
-
-	// update transform
-	robotLarm->update(translateRotateTranslate(swingDegPerFrame, glm::vec3(1, 0, 0), glm::vec3(0, -0.8, 0)));
-	robotRarm->update(translateRotateTranslate(-swingDegPerFrame, glm::vec3(1, 0, 0), glm::vec3(0, -0.8, 0)));
-	robotLleg->update(translateRotateTranslate(-swingDegPerFrame, glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)));
-	robotRleg->update(translateRotateTranslate(swingDegPerFrame, glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)));
-
-	// move robot army
-	if (delay_army_movement_counter >= delay_army_movement_frames) {
-		glm::vec3 current_curve_point = all_curve_point[current_step];
-		glm::vec3 translation = current_curve_point - last_curve_point; //calculate translate
-		RobotArmy->update(glm::translate(glm::mat4(1), translation));
-		last_curve_point = current_curve_point;
-		current_step = (current_step + 1) % num_of_total_curve_point;
-
-		//increment delay counter
-		delay_army_movement_counter = 0;
+	//check collision
+	std::cout << "collided: "<< cone->collidedWith(cylinder) << std::endl;
+	if (cone->collidedWith(cylinder)) {
+		cone->hitbox_color = glm::vec3(1, 0, 0);
+		cylinder->hitbox_color = glm::vec3(1, 0, 0);
 	}
 	else {
-		delay_army_movement_counter++;
+		cone->hitbox_color = glm::vec3(1, 1, 0);
+		cylinder->hitbox_color = glm::vec3(1, 1, 0);
 	}
-	*/
-
 }
 
 void Window::displayCallback(GLFWwindow* window)
@@ -400,24 +268,23 @@ void Window::displayCallback(GLFWwindow* window)
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 
-	/*draw rocket*/
-	glUseProgram(program);
-	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	rocket->draw(program, glm::mat4(1));
+	//draw test obj
+	cone->draw(program,projection,view,glm::mat4(1));
+	cylinder->draw(program, projection, view, glm::mat4(1));
 
 	/*
-	//building scene graph
+	//draw rocket
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	RobotArmy->draw(program, glm::mat4(1));
+	rocket1->draw(program, glm::mat4(1));
 
-	//build curve
-	glUseProgram(curveProgram);
-	glUniformMatrix4fv(glGetUniformLocation(curveProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(curveProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	curvepath->draw(curveProgram, glm::mat4(1));
+	//draw target
+	glUseProgram(program);
+	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	target->draw(program, glm::mat4(1));
+
 	*/
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
@@ -463,11 +330,10 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 			rot_angle = velocity * 50;// here is a constant to change angle
 			if (controlModeNum == 1) {
 				eye = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * glm::vec4(eye, 1.0f);
+				up = glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis) * glm::vec4(up, 1.0f);
 				view = glm::lookAt(eye, center, up);
 			}
-			else {
-				robotArmyRotationLayer->update(glm::rotate(glm::mat4(1.0f), glm::radians(rot_angle), rotAxis));
-			}
+			else {			}
 			
 			
 		}
@@ -505,12 +371,12 @@ void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 
 void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	if (controlModeNum == 1) {
-		view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, (float)yoffset)) * view;
+		eye.z = eye.z - yoffset;
+		//view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, (float)yoffset)) * view;
+		view = glm::lookAt(eye, center, up);
 	}
 	else {
-		float scale = (yoffset > 0) ? 1.2: 0.8;
-		robotArmyRotationLayer->update(glm::scale(glm::mat4(1), glm::vec3(scale)));
-	}
+		float scale = (yoffset > 0) ? 1.2: 0.8;	}
 	
 }
 

@@ -29,6 +29,7 @@
 #include "SceneTransform.h"
 #include "SceneGeometry.h"
 #include "BezierCurveGeometry.h"
+#include "SceneObject.h"
 
 class Window
 {

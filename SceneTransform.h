@@ -14,7 +14,7 @@ public:
 	void addChild(SceneNode* node);
 	void removeChild(SceneNode* node);
 
-	void draw(GLuint shaderProgram, glm::mat4 C);
+	void draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C);
 	void update(glm::mat4 C);
 };
 

@@ -22,9 +22,9 @@ void SceneTransform::removeChild(SceneNode* node) {
 	}
 }
 
-void SceneTransform::draw(GLuint shaderProgram, glm::mat4 C) {
+void SceneTransform::draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C) {
 	for (int i = 0; i < childNodes.size(); i++) {
-		childNodes[i]->draw(shaderProgram, C * M);
+		childNodes[i]->draw(shaderProgram,projection,view, C * M);
 	}
 }
 
