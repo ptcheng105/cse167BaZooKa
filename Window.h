@@ -29,6 +29,7 @@
 #include "SceneNode.h"
 #include "SceneTransform.h"
 #include "SceneGeometry.h"
+//#include "SceneGeometry2.h"
 #include "BezierCurveGeometry.h"
 #include "SceneObject.h"
 #include "Rocket.h"

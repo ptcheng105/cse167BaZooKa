@@ -1,7 +1,6 @@
 #ifndef _SCENETRANSFORM_H_
 #define _SCENETRANSFORM_H_
 #include "SceneNode.h"
-#include "HitBox.h"
 class SceneTransform :
 	public SceneNode
 {

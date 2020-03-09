@@ -27,6 +27,9 @@ namespace
 
 	//rocket
 	Rocket * rocket1;
+	SceneTransform *launcher;
+	//SceneGeometry2* launcherGeometry;
+
 
 	// target
 	SceneObject* test_obj1, *test_obj2;
@@ -69,6 +72,10 @@ namespace
 
 	bool firstMouse = true;
 
+	GLuint modelProgram;
+
+	float camTime = 0.0;
+
 };
 
 bool Window::initializeProgram()
@@ -82,6 +89,7 @@ bool Window::initializeProgram()
 	//load curve shader
 	colorProgram = LoadShaders("shaders/colorShader.vert", "shaders/colorShader.frag");
 
+	modelProgram = LoadShaders("shaders/modelshader.vert", "shaders/modelshader.frag");
 	// Check the shader programs.
 	if (!program)
 	{
@@ -96,6 +104,11 @@ bool Window::initializeProgram()
 	if (!colorProgram)
 	{
 		std::cerr << "Failed to initialize color program" << std::endl;
+		//return false;
+	}
+
+	if (!modelProgram) {
+		std::cerr << "Failed to initialize model program" << std::endl;
 		//return false;
 	}
 
@@ -118,8 +131,16 @@ bool Window::initializeObjects()
 	rocket1 = new Rocket(glm::vec3(-7, 0, 0), cylinder, cone, sphere, colorProgram);
 	rocket1->rotateObj(90.0f, glm::vec3(1, 1, 1));
 	rocket1->velocity = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 1, 1)) * glm::vec4(glm::vec3(0, 0.001, 0),1);
+	//test object
 	test_obj1 = new SceneObject(glm::vec3(10, 0, 10), colorProgram);
 	test_obj1->velocity = glm::vec3(-0.005, 0, 0);
+
+
+	//launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
+	//launcherGeometry->genTexture("gun_D.jpg");
+
+	//launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
+	//launcher->addChild(launcherGeometry);
 	return true;
 }
 
@@ -236,7 +257,6 @@ void Window::idleCallback()
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
 }
 
 void Window::displayCallback(GLFWwindow* window)
@@ -247,6 +267,7 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Clear the color and depth buffers.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthRange(0.0, 2.0);
 
 	//sky box	
 	glDepthMask(GL_FALSE);
@@ -262,6 +283,11 @@ void Window::displayCallback(GLFWwindow* window)
 
 	//draw test obj
 	test_obj1->drawObject(program, projection, view);
+
+	glUseProgram(modelProgram);
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	//launcher->draw(modelProgram, glm::mat4(1.0f));
 
 	//draw rocket
 	rocket1->drawObject(program, projection, view);
@@ -292,7 +318,6 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 	if (dragging) {
 		double movement_x = xpos - mouse_x;
 		double movement_y = ypos - mouse_y;
-		//view = glm::translate(glm::mat4(1), glm::vec3(movement_x / 50, -movement_y / 50, 0)) * view;
 		mouse_x = xpos;
 		mouse_y = ypos;
 	}else if (rotating) {
@@ -342,6 +367,8 @@ void Window::mouseMovementCallback(GLFWwindow* window, double xpos, double ypos)
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+
 	camFront = glm::normalize(direction);
 }
 
@@ -419,15 +446,19 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			{
 			case GLFW_KEY_W:
 				camPos += camSpeed * camFront;
+				//launcher->update(glm::translate(glm::mat4(1.0f), camSpeed * camFront));
 				break;
 			case GLFW_KEY_S:
 				camPos -= camSpeed * camFront;
+				//launcher->update(glm::translate(glm::mat4(1.0f), -camSpeed * camFront));
 				break;
 			case GLFW_KEY_A:
 				camPos -= glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				//launcher->update(glm::translate(glm::mat4(1.0f), -glm::normalize(glm::cross(camFront, camUp)) * camSpeed));
 				break;
 			case GLFW_KEY_D:
 				camPos += glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+				//launcher->update(glm::translate(glm::mat4(1.0f), glm::normalize(glm::cross(camFront, camUp)) * camSpeed));
 				break;
 			case GLFW_KEY_C:
 				controlModeNum = 1;

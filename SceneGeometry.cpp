@@ -106,6 +106,7 @@ PointsObj SceneGeometry::getPoints2(std::string filename) {
 	}
 	return retObj;
 };
+
 SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, GLuint hitbox_prog)
 {
 	//set hitbox_program to hit_box_prog
