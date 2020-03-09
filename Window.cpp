@@ -28,7 +28,7 @@ namespace
 	//rocket
 	Rocket * rocket1;
 	SceneTransform *launcher;
-	//SceneGeometry2* launcherGeometry;
+	SceneGeometry2* launcherGeometry;
 
 
 	// target
@@ -136,11 +136,11 @@ bool Window::initializeObjects()
 	test_obj1->velocity = glm::vec3(-0.005, 0, 0);
 
 
-	//launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
-	//launcherGeometry->genTexture("gun_D.jpg");
+	launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
+	launcherGeometry->genTexture("gun_D.jpg");
 
-	//launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
-	//launcher->addChild(launcherGeometry);
+	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
+	launcher->addChild(launcherGeometry);
 	return true;
 }
 
@@ -287,7 +287,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	//launcher->draw(modelProgram, glm::mat4(1.0f));
+	launcher->draw(modelProgram, glm::mat4(1.0f));
 
 	//draw rocket
 	rocket1->drawObject(program, projection, view);
