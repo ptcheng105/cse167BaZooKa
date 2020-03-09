@@ -157,6 +157,7 @@ bool SceneObject::isCollidedWith(SceneObject* targetObj) {
 void SceneObject::resolveCollision(bool collided) {
 	if (collided) {
 		hitbox_color = glm::vec3(1, 0, 0);//set hit box to red
+		acceleration = glm::vec3(0, 0, 0);
 		velocity = glm::vec3(0, 0, 0);
 		destroyed = true;
 	}

@@ -31,7 +31,6 @@ namespace
 
 	//collision detection
 	std::vector<SceneObject*> object_list;
-	std::vector<SceneObject*> active_list;
 	// target
 	//SceneObject* test_obj1, *test_obj2, *test_obj3, * test_obj4, * test_obj5;
 
@@ -134,7 +133,7 @@ bool Window::initializeObjects()
 	
 	//test object
 	for (int i = 0; i < 6; i++) {
-		SceneObject* test_obj = new SceneObject(glm::vec3(i*3, i*4, i*-2), colorProgram);
+		SceneObject* test_obj = new SceneObject(glm::vec3(-i, i*4, i*-2), colorProgram);
 		object_list.push_back(test_obj);
 	}
 
@@ -240,17 +239,39 @@ void Window::idleCallback()
 	for (int i = 0; i < object_list.size(); i++) {
 		object_list[i]->idleUpdate();
 	}
-	//rocket1->rotateObj(-0.5f, glm::vec3(0, 0, 1));
 
-	//check collision
-	for (int i = 0; i < object_list.size(); i++) {
-		for (int j = 0; j < object_list.size(); j++) {
-			if (i == j) continue;
-			if (object_list[i]->isCollidedWith(object_list[j])) {
-				object_list[i]->resolveCollision(true);
-				object_list[j]->resolveCollision(true);
+	//sort obj arry
+	insertionSort(object_list);
+
+	std::vector<SceneObject*> activelist;
+	//checkcollision
+	// insert first item to activelist
+	activelist.push_back(object_list[0]);
+	// then check all other object
+	for (int i = 1; i < object_list.size(); i++) {
+		SceneObject* curObj = object_list[i];
+		//now use the curObj to check against all previous item in active_list;
+		std::vector<SceneObject*> new_activelist;
+		for (int j = 0; j < activelist.size(); j++) {
+			if (curObj->xAxis_min < activelist[j]->xAxis_max) {
+				//in range so put in new_activelist 
+				new_activelist.push_back(activelist[j]);
 			}
 		}
+		activelist = new_activelist;
+		//add ourself in
+		activelist.push_back(curObj);
+		//with in all the obj in active list, do collision test
+		for (int k = 0; k < activelist.size(); k++) {
+			for (int l = 0; l < activelist.size(); l++) {
+				if (k == l) continue;
+				if (activelist[k]->isCollidedWith(activelist[l])) {
+					activelist[k]->resolveCollision(true);
+					activelist[l]->resolveCollision(true);
+				}
+			}
+		}
+
 	}
 
 	//delete object that is destroyed
@@ -302,7 +323,7 @@ void Window::displayCallback(GLFWwindow* window)
 
 	//draw target obj
 	for (int i = 0; i < object_list.size(); i++) {
-		object_list[i]->drawObject(program, projection, view);
+		object_list[i]->drawObject(colorProgram, projection, view);
 	}
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
@@ -462,7 +483,18 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 				//launcher->update(glm::translate(glm::mat4(1.0f), glm::normalize(glm::cross(camFront, camUp)) * camSpeed));
 				break;
 			case GLFW_KEY_C:
-				controlModeNum = 1;
+				if (displayHitbox) {
+					for (int i = 0; i < object_list.size(); i++) {
+						object_list[i]->drawHitbox = false;
+						displayHitbox = false;
+					}
+				}
+				else {
+					for (int i = 0; i < object_list.size(); i++) {
+						object_list[i]->drawHitbox = true;
+						displayHitbox = true;
+					}
+				}
 				break;
 			case GLFW_KEY_X:
 				if (destroyMode) {
@@ -491,12 +523,24 @@ void Window::generateAndShootRocket() {
 
 	new_rocket->rotateObj(-deg, rotAxis);
 	new_rocket->scaleObj(glm::vec3(.1f,.1f,.1f));
-	new_rocket->acceleration = 0.000001f * camFront; //shoot upward cos rocket model face upward
+	new_rocket->acceleration = 0.0001f * camFront; //shoot upward cos rocket model face upward
 	object_list.push_back(new_rocket);
 }
 
 void Window::insertionSort(std::vector<SceneObject*>& vec) {
+	int j;
+	SceneObject* temp;
 
+	for (int i = 0; i < vec.size(); i++) {
+		j = i;
+
+		while (j > 0 && vec[j]->xAxis_min < vec[j - 1]->xAxis_min) {
+			temp = vec[j];
+			vec[j] = vec[j - 1];
+			vec[j - 1] = temp;
+			j--;
+		}
+	}
 }
 
 bool cmpSceneObj(SceneObject* obj1, SceneObject* obj2) {

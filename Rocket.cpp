@@ -1,5 +1,9 @@
 #include "Rocket.h"
 Rocket::Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog): SceneObject(position_in_world, hitbox_prog) {
+	//set color here
+	cone->geo_color = glm::vec3(0.8, 0, 0);
+	sphere->geo_color = glm::vec3(0.8,0,0);
+	cylinder->geo_color = glm::vec3(.5, .5, .5);
 	//set hitbox_program to hit_box_prog
 	rocketHead = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
 	rocketHead->addChild(cone);

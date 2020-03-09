@@ -109,8 +109,6 @@ PointsObj SceneGeometry::getPoints2(std::string filename) {
 
 SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, GLuint hitbox_prog)
 {
-	//set hitbox_program to hit_box_prog
-	hitbox_program = hitbox_prog;
 	//parse from obj file
 
 	if (use_getPoint_number == 1) {
@@ -131,8 +129,6 @@ SceneGeometry::SceneGeometry(std::string objFilename, int use_getPoint_number, G
 	for (int i = 0; i < points.size(); i++) {
 		points[i] = points[i] - glm::vec3(x_mid, y_mid, z_mid);
 	}
-
-	hitbox_half_dimension = glm::vec3((pointObj.x_max - x_mid), (pointObj.y_max - y_mid), (pointObj.z_max - z_mid));
 
 	// Generate a vertex array (VAO) and a vertex buffer objects (VBO).
 	glGenVertexArrays(1, &vao);
@@ -180,6 +176,7 @@ void SceneGeometry::draw(GLuint shaderProgram, glm::mat4 projection, glm::mat4 v
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(glGetUniformLocation(shaderProgram, "color"), 1, glm::value_ptr(geo_color));
 	// Bind to the VAO.
 	glBindVertexArray(vao);
 	//draw triangles
