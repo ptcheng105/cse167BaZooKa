@@ -285,9 +285,8 @@ void Window::displayCallback(GLFWwindow* window)
 	test_obj1->drawObject(program, projection, view);
 
 	glUseProgram(modelProgram);
-	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	launcher->draw(modelProgram, glm::mat4(1.0f));
+
+	launcher->draw(modelProgram, projection, view, glm::mat4(1.0f));
 
 	//draw rocket
 	rocket1->drawObject(program, projection, view);
