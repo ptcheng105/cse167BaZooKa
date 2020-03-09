@@ -28,7 +28,7 @@ namespace
 	//rocket
 	Rocket * rocket1;
 	SceneTransform *launcher;
-	SceneGeometry2* launcherGeometry;
+	//SceneGeometry2* launcherGeometry;
 
 
 	// target
@@ -128,19 +128,18 @@ bool Window::initializeObjects()
 	skybox = new SkyBox();
 
 	//rocket
-	rocket1 = new Rocket(glm::vec3(-7, 0, 0), cylinder, cone, sphere, colorProgram);
-	rocket1->rotateObj(90.0f, glm::vec3(1, 1, 1));
-	rocket1->velocity = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 1, 1)) * glm::vec4(glm::vec3(0, 0.001, 0),1);
+	rocket1 = new Rocket(glm::vec3(0, 0, 0), cylinder, cone, sphere, colorProgram);
+	//rocket1->velocity = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 1)) * glm::vec4(glm::vec3(0, 0.1, 0),1);
 	//test object
-	test_obj1 = new SceneObject(glm::vec3(10, 0, 10), colorProgram);
-	test_obj1->velocity = glm::vec3(-0.005, 0, 0);
+	test_obj1 = new SceneObject(glm::vec3(8, 0, 0), colorProgram);
+	//test_obj1->velocity = glm::vec3(-0.005, 0, 0);
 
 
-	launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
-	launcherGeometry->genTexture("gun_D.jpg");
+	//launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
+	//launcherGeometry->genTexture("gun_D.jpg");
 
-	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
-	launcher->addChild(launcherGeometry);
+	//launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
+	//launcher->addChild(launcherGeometry);
 	return true;
 }
 
@@ -239,6 +238,7 @@ void Window::idleCallback()
 	// Perform any updates as necessary.
 	test_obj1->idleUpdate();
 	rocket1->idleUpdate();
+	//rocket1->rotateObj(-0.5f, glm::vec3(0, 0, 1));
 
 	//check collision
 	if (rocket1->isCollidedWith(test_obj1)) {
@@ -264,7 +264,6 @@ void Window::displayCallback(GLFWwindow* window)
 	// update view
 	view = glm::lookAt(camPos, camPos + camFront, camUp);
 
-
 	// Clear the color and depth buffers.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDepthRange(0.0, 2.0);
@@ -287,7 +286,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	launcher->draw(modelProgram, glm::mat4(1.0f));
+	//launcher->draw(modelProgram, glm::mat4(1.0f));
 
 	//draw rocket
 	rocket1->drawObject(program, projection, view);

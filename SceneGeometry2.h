@@ -1,4 +1,3 @@
-#pragma once
 #ifndef _SCENEGEOMETRY2_H_
 #define _SCENEGEOMETRY2_H_
 #include "SceneNode.h"

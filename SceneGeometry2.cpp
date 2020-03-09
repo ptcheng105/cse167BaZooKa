@@ -55,8 +55,6 @@ SceneGeometry2::SceneGeometry2(std::string filename) {
 
 	getPoints(filename);
 
-
-
 	// Generate a vertex array (VAO) and a vertex buffer objects (VBO).
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(2, vbo);
