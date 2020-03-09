@@ -52,7 +52,9 @@ Rocket::Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeomet
 		glm::vec3(hitbox_half_dimension.x, hitbox_half_dimension.y, -hitbox_half_dimension.z)
 	};
 	bindHitboxData();
-	
+	//calculate min max on xaxis
+	std::vector<glm::vec3> thisobj_corners = getHitboxCorners();
+	SATtest(glm::vec3(1, 0, 0), thisobj_corners, xAxis_min, xAxis_max);
 }
 
 Rocket::~Rocket() {

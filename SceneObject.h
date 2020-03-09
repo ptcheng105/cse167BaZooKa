@@ -11,6 +11,8 @@ struct SATtest_return {
 class SceneObject
 {
 public:
+	float xAxis_min, xAxis_max;
+
 	glm::mat4 translateTM;
 	glm::mat4 rot_scaleTM;
 	SceneTransform* this_object;
@@ -18,6 +20,7 @@ public:
 	//physics
 	glm::vec4 position_in_world;
 	glm::vec3 velocity = glm::vec3(0, 0, 0);
+	glm::vec3 acceleration = glm::vec3(0, 0, 0);
 
 	//hitbox
 	GLuint hitbox_program;
@@ -30,6 +33,7 @@ public:
 	bool drawHitbox = true;
 	glm::vec3 hitbox_color = glm::vec3(1, 1, 1);
 	std::vector<float> XYZMaxMin;
+	bool destroyed = false;
 
 	SceneObject(glm::vec3 position_in_world, GLuint hitbox_prog);
 	~SceneObject();
@@ -42,10 +46,12 @@ public:
 	bool isCollidedWith(SceneObject* targetObj);
 	void resolveCollision(bool collided);
 	void rotateObj(float deg, glm::vec3 rotAxis);
+	void scaleObj(glm::vec3 scale);
 	void SATtest(const glm::vec3& axis, const std::vector<glm::vec3>& pointSet, float& minInAxis, float& maxInAxis);
 	std::vector<glm::vec3> getHitboxCorners();
 	bool overlaps(float min1, float max1, float min2, float max2);
 	bool isBetweenOrdered(float val, float lowerBound, float upperBound);
+	
 };
 
 #endif

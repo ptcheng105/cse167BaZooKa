@@ -44,6 +44,10 @@ SceneObject::SceneObject(glm::vec3 position_in_world, GLuint hitbox_prog){
 	hitbox_half_dimension = glm::vec3(1, 1, 1);
 	bindHitboxData();
 	XYZMaxMin = { 1,-1,1,-1,1,-1 };
+
+	//calculate min max on xaxis
+	std::vector<glm::vec3> thisobj_corners = getHitboxCorners();
+	SATtest(glm::vec3(1, 0, 0), thisobj_corners, xAxis_min, xAxis_max);
 }	
 
 SceneObject::~SceneObject()
@@ -100,12 +104,17 @@ void SceneObject::drawObject(GLuint shaderProgram, glm::mat4 projection, glm::ma
 
 void SceneObject::idleUpdate() {
 	//update object with set physics
+	velocity = velocity + acceleration;
 	glm::mat4 changeinpos = glm::translate(glm::mat4(1.0f), velocity);
 	position_in_world = changeinpos * position_in_world;
 	translateTM = changeinpos * translateTM;
 
 	//make sure to update hitbox model lastly
 	hitbox_model = translateTM * rot_scaleTM;
+
+	//calculate min max on xaxis
+	std::vector<glm::vec3> thisobj_corners = getHitboxCorners();
+	SATtest(glm::vec3(1,0,0), thisobj_corners, xAxis_min, xAxis_max);
 }
 
 bool SceneObject::isCollidedWith(SceneObject* targetObj) {
@@ -149,6 +158,7 @@ void SceneObject::resolveCollision(bool collided) {
 	if (collided) {
 		hitbox_color = glm::vec3(1, 0, 0);//set hit box to red
 		velocity = glm::vec3(0, 0, 0);
+		destroyed = true;
 	}
 	else {
 		hitbox_color = glm::vec3(1, 1, 1);//set to white
@@ -158,6 +168,11 @@ void SceneObject::resolveCollision(bool collided) {
 
 void SceneObject::rotateObj(float deg, glm::vec3 rotAxis) {
 	rot_scaleTM = glm::rotate(glm::mat4(1.0f), glm::radians(deg), rotAxis) * rot_scaleTM;
+	hitbox_model = translateTM * rot_scaleTM;
+}
+
+void SceneObject::scaleObj(glm::vec3 scale) {
+	rot_scaleTM = glm::scale(glm::mat4(1.0f), scale) * rot_scaleTM;
 	hitbox_model = translateTM * rot_scaleTM;
 }
 

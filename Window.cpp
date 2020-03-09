@@ -26,15 +26,18 @@ namespace
 	SceneGeometry* cylinder, * cone, * sphere;
 
 	//rocket
-	std::vector<Rocket*> rockets;
-
-	Rocket * rocket1;
 	SceneTransform *launcher;
 	SceneGeometry2* launcherGeometry;
 
-
+	//collision detection
+	std::vector<SceneObject*> object_list;
+	std::vector<SceneObject*> active_list;
 	// target
-	SceneObject* test_obj1, *test_obj2;
+	//SceneObject* test_obj1, *test_obj2, *test_obj3, * test_obj4, * test_obj5;
+
+	//mode switch
+	bool displayHitbox = true;
+	bool destroyMode = true;
 
 	//Identity matrix
 	const glm::mat4 IM = glm::mat4(1.0f);
@@ -128,14 +131,12 @@ bool Window::initializeObjects()
 	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
 	// create skybox
 	skybox = new SkyBox();
-
-	//rocket
-	rocket1 = new Rocket(glm::vec3(0, 0, 0), cylinder, cone, sphere, colorProgram);
-	//rocket1->velocity = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 1)) * glm::vec4(glm::vec3(0, 0.1, 0),1);
+	
 	//test object
-	test_obj1 = new SceneObject(glm::vec3(8, 0, 0), colorProgram);
-	//test_obj1->velocity = glm::vec3(-0.005, 0, 0);
-
+	for (int i = 0; i < 6; i++) {
+		SceneObject* test_obj = new SceneObject(glm::vec3(i*3, i*4, i*-2), colorProgram);
+		object_list.push_back(test_obj);
+	}
 
 	launcherGeometry = new SceneGeometry2("rocketlauncher.obj");
 	launcherGeometry->genTexture("gun_D.jpg");
@@ -152,8 +153,6 @@ void Window::cleanUp()
 	delete cone;
 	delete sphere;
 	delete skybox;
-	delete rocket1;
-	delete test_obj1, test_obj2;
 
 	glDeleteProgram(program);
 	glDeleteProgram(skyBoxProgram);
@@ -238,22 +237,33 @@ void Window::resizeCallback(GLFWwindow* window, int w, int h)
 void Window::idleCallback()
 {
 	// Perform any updates as necessary.
-	test_obj1->idleUpdate();
-	rocket1->idleUpdate();
-	for (int i = 0; i < rockets.size(); i++) {
-		rockets[i]->idleUpdate();
+	for (int i = 0; i < object_list.size(); i++) {
+		object_list[i]->idleUpdate();
 	}
 	//rocket1->rotateObj(-0.5f, glm::vec3(0, 0, 1));
 
 	//check collision
-	if (rocket1->isCollidedWith(test_obj1)) {
-		rocket1->resolveCollision(true);
-		test_obj1->resolveCollision(true);
+	for (int i = 0; i < object_list.size(); i++) {
+		for (int j = 0; j < object_list.size(); j++) {
+			if (i == j) continue;
+			if (object_list[i]->isCollidedWith(object_list[j])) {
+				object_list[i]->resolveCollision(true);
+				object_list[j]->resolveCollision(true);
+			}
+		}
 	}
-	else {
-		rocket1->resolveCollision(false);
-		test_obj1->resolveCollision(false);
+
+	//delete object that is destroyed
+	if (destroyMode) {
+		for (int i = 0; i < object_list.size(); i++) {
+			if (object_list[i]->destroyed == true) {
+				delete object_list[i];
+				object_list.erase(object_list.begin() + i);
+			}
+		}
 	}
+
+
 
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
@@ -285,21 +295,15 @@ void Window::displayCallback(GLFWwindow* window)
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 
-	//draw test obj
-	test_obj1->drawObject(program, projection, view);
-
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
 	launcher->draw(modelProgram, projection, view, glm::mat4(1.0f));
 
-
-	//draw rocket
-	rocket1->drawObject(program, projection, view);
-	for (int i = 0; i < rockets.size(); i++) {
-		rockets[i]->drawObject(program, projection, view);
+	//draw target obj
+	for (int i = 0; i < object_list.size(); i++) {
+		object_list[i]->drawObject(program, projection, view);
 	}
-
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
 	glfwPollEvents();
@@ -389,7 +393,7 @@ void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 		dragging = false;
 	}
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		generateAndShootRocket(camPos, camFront);
+		generateAndShootRocket();
 	}
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 		rotating = false;
@@ -422,7 +426,6 @@ glm::mat4 Window::translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::ve
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-
 	float camSpeed = 200.5f * deltaTime;
 	/*
 	 * TODO: Section 4: Modify below to add your key callbacks.
@@ -462,7 +465,12 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 				controlModeNum = 1;
 				break;
 			case GLFW_KEY_X:
-				controlModeNum = 2;
+				if (destroyMode) {
+					destroyMode = false;
+				}
+				else {
+					destroyMode = true;
+				}
 				break;
 			case GLFW_KEY_ESCAPE:
 				// Close the window. This causes the program to also terminate.
@@ -476,13 +484,21 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 void Window::generateAndShootRocket() {
-	Rocket* new_rocket = new Rocket(camPos + 10.0f*camFront, cylinder, cone, sphere, colorProgram);
+	Rocket* new_rocket = new Rocket(camPos + 3.0f*camFront, cylinder, cone, sphere, colorProgram);
 	glm::vec3 rotAxis = glm::cross(glm::normalize(camFront), glm::vec3(0, 1, 0)); //because rocket is facing up in model we cross with (0,1,0)
-	float deg = glm::dot(direction, glm::vec3(0, 1, 0));
-	glm::mat4 rotMatrix = glm::rotate(IM, glm::radians(deg), rotAxis);
 
-	new_rocket->rotateObj(deg, rotAxis);
-	float speed = 0.001;
-	new_rocket->velocity = speed * glm::normalize(direction); //shoot upward cos rocket model face upward
-	rockets.push_back(new_rocket);
+	float deg = glm::degrees(acos(glm::dot(camFront, glm::vec3(0, 1, 0))));
+
+	new_rocket->rotateObj(-deg, rotAxis);
+	new_rocket->scaleObj(glm::vec3(.1f,.1f,.1f));
+	new_rocket->acceleration = 0.000001f * camFront; //shoot upward cos rocket model face upward
+	object_list.push_back(new_rocket);
+}
+
+void Window::insertionSort(std::vector<SceneObject*>& vec) {
+
+}
+
+bool cmpSceneObj(SceneObject* obj1, SceneObject* obj2) {
+	return obj1->xAxis_min < obj2->xAxis_min;
 }
