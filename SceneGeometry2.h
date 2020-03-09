@@ -23,8 +23,9 @@ public:
 	void genTexture(std::string filename);
 	~SceneGeometry2();
 
-	void draw(GLuint shaderProgram, glm::mat4 C);
 	void update(glm::mat4 C);
+	void draw(GLuint modelProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C);
+	std::vector<float> getXYZMaxMin(glm::mat4 C);
 };
 
 #endif

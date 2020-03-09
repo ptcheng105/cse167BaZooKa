@@ -62,6 +62,7 @@ public:
 	//generate a transformation matrix
 	static glm::mat4 scaleRotateTranslate(glm::vec3 scale_vec, float deg, glm::vec3 rotAxis, glm::vec3 trans_vec);
 	static glm::mat4 translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::vec3 trans_vec);
+	static void generateAndShootRocket();
 };
 
 #endif

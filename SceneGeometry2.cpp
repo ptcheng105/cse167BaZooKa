@@ -117,16 +117,7 @@ void SceneGeometry2::genTexture(std::string filename) {
 	stbi_image_free(data);
 }
 
-void SceneGeometry2::draw(GLuint program, glm::mat4 C) {
-	model = C;
-	glUseProgram(program);
-	glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0,vertices.size());
-	// Unbind from the VAO.
-	glBindVertexArray(0);
-}
+
 
 SceneGeometry2::~SceneGeometry2() {
 	glDeleteBuffers(1, &vbo[0]);
@@ -136,4 +127,23 @@ SceneGeometry2::~SceneGeometry2() {
 }
 void SceneGeometry2::update(glm::mat4 C) {
 
+}
+
+void SceneGeometry2::draw(GLuint modelProgram, glm::mat4 projection, glm::mat4 view, glm::mat4 C) {
+	glUseProgram(modelProgram);
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	model = C;
+
+	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	// Unbind from the VAO.
+	glBindVertexArray(0);
+
+}
+
+std::vector<float> SceneGeometry2::getXYZMaxMin(glm::mat4 C) {
+	return std::vector<float>();
 }

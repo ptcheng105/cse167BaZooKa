@@ -168,7 +168,6 @@ void SceneObject::SATtest(const glm::vec3& axis, const std::vector<glm::vec3>& p
 	{
 		// just dot it to get the min/max along this axis.
 		float dotVal = glm::dot(pointSet[i],axis);
-		std::cout << dotVal << std::endl;
 		if (dotVal < minInAxis)  minInAxis = dotVal;
 		if (dotVal > maxInAxis)  maxInAxis = dotVal;
 	}
