@@ -449,7 +449,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	//rocket->draw(program, glm::mat4(1));
+	rocket->draw(program, glm::mat4(1));
 
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
