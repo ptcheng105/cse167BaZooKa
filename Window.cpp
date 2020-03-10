@@ -123,13 +123,16 @@ bool Window::initializeProgram()
 
 bool Window::initializeObjects()
 {
+	// create skybox
+	skybox = new SkyBox();
+	// create water
+	waterTile = new WaterTile(waterProgram, 20, 20, skybox->skyBoxTextureID, &camPos);
+
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
 	cone = new SceneGeometry("cone.obj", 2, colorProgram);
 	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
-	// create skybox
-	skybox = new SkyBox();
-	waterTile = new WaterTile(waterProgram, 20, 20);
+
 	//test object
 	for (int i = 0; i < 6; i++) {
 		SceneObject* test_obj = new SceneObject(glm::vec3(-i, i*4, i*-2), colorProgram);
