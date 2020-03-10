@@ -33,6 +33,7 @@
 #include "BezierCurveGeometry.h"
 #include "SceneObject.h"
 #include "Rocket.h"
+#include "TerrainGenerator.h"
 class Window
 {
 public:

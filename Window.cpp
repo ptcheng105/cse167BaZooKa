@@ -59,7 +59,7 @@ namespace
 	bool rotating = false;
 
 	// for camera controls
-	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 15.0f);
+	glm::vec3 camPos = glm::vec3(0.0f, 30.0f, 0.0f);
 	glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
@@ -78,6 +78,8 @@ namespace
 
 	float camTime = 0.0;
 
+	TerrainGenerator* terrain;
+	GLuint terrainProgram;
 };
 
 bool Window::initializeProgram()
@@ -92,6 +94,8 @@ bool Window::initializeProgram()
 	colorProgram = LoadShaders("shaders/colorShader.vert", "shaders/colorShader.frag");
 
 	modelProgram = LoadShaders("shaders/modelshader.vert", "shaders/modelshader.frag");
+
+	terrainProgram = LoadShaders("shaders/terrainShader.vert", "shaders/terrainShader.frag");
 	// Check the shader programs.
 	if (!program)
 	{
@@ -111,6 +115,10 @@ bool Window::initializeProgram()
 
 	if (!modelProgram) {
 		std::cerr << "Failed to initialize model program" << std::endl;
+		//return false;
+	}
+	if (!terrainProgram) {
+		std::cerr << "Failed to initialize terrain program" << std::endl;
 		//return false;
 	}
 
@@ -142,6 +150,9 @@ bool Window::initializeObjects()
 
 	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
 	launcher->addChild(launcherGeometry);
+
+	terrain = new TerrainGenerator(64, 500, 10, "photos_2017_11_13_fst_baked.jpg");
+
 	return true;
 }
 
@@ -286,7 +297,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glDisable(GL_CULL_FACE);
 
 	//draw test obj
-	test_obj1->drawObject(program, projection, view);
+	//test_obj1->drawObject(program, projection, view);
 
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -295,11 +306,15 @@ void Window::displayCallback(GLFWwindow* window)
 
 
 	//draw rocket
-	rocket1->drawObject(program, projection, view);
+	//rocket1->drawObject(program, projection, view);
 	for (int i = 0; i < rockets.size(); i++) {
-		rockets[i]->drawObject(program, projection, view);
+		//rockets[i]->drawObject(program, projection, view);
 	}
 
+	//draw terrain
+
+	glUseProgram(terrainProgram);
+	terrain->draw(terrainProgram, projection, view, glm::mat4(1.0f));
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
 	glfwPollEvents();
@@ -389,7 +404,7 @@ void Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 		dragging = false;
 	}
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		generateAndShootRocket(camPos, camFront);
+		generateAndShootRocket();
 	}
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 		rotating = false;
@@ -423,7 +438,7 @@ glm::mat4 Window::translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::ve
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 
-	float camSpeed = 200.5f * deltaTime;
+	float camSpeed = 500.5f * deltaTime;
 	/*
 	 * TODO: Section 4: Modify below to add your key callbacks.
 	 */
@@ -481,7 +496,8 @@ void Window::generateAndShootRocket() {
 	float deg = glm::dot(direction, glm::vec3(0, 1, 0));
 	glm::mat4 rotMatrix = glm::rotate(IM, glm::radians(deg), rotAxis);
 
-	new_rocket->rotateObj(deg, rotAxis);
+	new_rocket->rotateObj(-90, glm::vec3(1, 0, 0));
+	new_rocket->rotateObj(90 + pitch, glm::vec3(1,0,0));
 	float speed = 0.001;
 	new_rocket->velocity = speed * glm::normalize(direction); //shoot upward cos rocket model face upward
 	rockets.push_back(new_rocket);
