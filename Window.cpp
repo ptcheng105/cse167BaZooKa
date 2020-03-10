@@ -18,9 +18,9 @@ namespace
 	GLint lightModeNum = 1;
 	int controlModeNum = 1; // 1 = control model, 2 = control point light
 	
+	//environment
 	SkyBox* skybox;
-	//word transform
-	SceneTransform* world;
+	WaterTile* waterTile;
 
 	//basic scene geometry
 	SceneGeometry* cylinder, * cone, * sphere;
@@ -48,8 +48,9 @@ namespace
 	float far = 1000;
 	glm::mat4 projection; // Projection matrix.
 
+	//shaders
 	GLuint program; // The shader program id.
-	GLuint colorProgram, skyBoxProgram;
+	GLuint colorProgram, skyBoxProgram, waterProgram;
 
 	GLuint lightPosLoc; //location of light pos in shader
 	GLuint programQuad;
@@ -87,12 +88,10 @@ bool Window::initializeProgram()
 	// Create a shader program with a vertex shader and a fragment shader.
 	program = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 
-	//load sky box shader
+	//load other shader
 	skyBoxProgram = LoadShaders("shaders/skyBoxShader.vert", "shaders/skyBoxShader.frag");
-
-	//load curve shader
 	colorProgram = LoadShaders("shaders/colorShader.vert", "shaders/colorShader.frag");
-
+	waterProgram = LoadShaders("shaders/waterShader.vert", "shaders/waterShader.frag");
 	modelProgram = LoadShaders("shaders/modelshader.vert", "shaders/modelshader.frag");
 	// Check the shader programs.
 	if (!program)
@@ -110,14 +109,14 @@ bool Window::initializeProgram()
 		std::cerr << "Failed to initialize color program" << std::endl;
 		//return false;
 	}
-
+	if (!waterProgram) {
+		std::cerr << "Failed to initialize water program" << std::endl;
+		//return false;
+	}
 	if (!modelProgram) {
 		std::cerr << "Failed to initialize model program" << std::endl;
 		//return false;
 	}
-
-	// Activate the shader program.
-	glUseProgram(program);
 
 	return true;
 }
@@ -130,7 +129,7 @@ bool Window::initializeObjects()
 	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
 	// create skybox
 	skybox = new SkyBox();
-	
+	waterTile = new WaterTile(waterProgram, 20, 20);
 	//test object
 	for (int i = 0; i < 6; i++) {
 		SceneObject* test_obj = new SceneObject(glm::vec3(-i, i*4, i*-2), colorProgram);
@@ -156,6 +155,7 @@ void Window::cleanUp()
 	glDeleteProgram(program);
 	glDeleteProgram(skyBoxProgram);
 	glDeleteProgram(colorProgram);
+	glDeleteProgram(waterProgram);
 }
 
 GLFWwindow* Window::createWindow(int width, int height)
@@ -316,6 +316,10 @@ void Window::displayCallback(GLFWwindow* window)
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 
+	//water
+	waterTile->draw(projection, view);
+
+	//launcher
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));

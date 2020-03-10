@@ -33,6 +33,7 @@
 #include "BezierCurveGeometry.h"
 #include "SceneObject.h"
 #include "Rocket.h"
+#include "WaterTile.h"
 class Window
 {
 public:
