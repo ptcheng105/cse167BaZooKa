@@ -34,6 +34,7 @@
 #include "SceneObject.h"
 #include "Rocket.h"
 #include "WaterTile.h"
+#include "TerrainGenerator.h"
 class Window
 {
 public:

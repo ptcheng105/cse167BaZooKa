@@ -62,7 +62,7 @@ namespace
 	bool rotating = false;
 
 	// for camera controls
-	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 15.0f);
+	glm::vec3 camPos = glm::vec3(0.0f, 30.0f, 0.0f);
 	glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
@@ -81,6 +81,8 @@ namespace
 
 	float camTime = 0.0;
 
+	TerrainGenerator* terrain;
+	GLuint terrainProgram;
 };
 
 bool Window::initializeProgram()
@@ -93,6 +95,8 @@ bool Window::initializeProgram()
 	colorProgram = LoadShaders("shaders/colorShader.vert", "shaders/colorShader.frag");
 	waterProgram = LoadShaders("shaders/waterShader.vert", "shaders/waterShader.frag");
 	modelProgram = LoadShaders("shaders/modelshader.vert", "shaders/modelshader.frag");
+
+	terrainProgram = LoadShaders("shaders/terrainShader.vert", "shaders/terrainShader.frag");
 	// Check the shader programs.
 	if (!program)
 	{
@@ -115,6 +119,10 @@ bool Window::initializeProgram()
 	}
 	if (!modelProgram) {
 		std::cerr << "Failed to initialize model program" << std::endl;
+		//return false;
+	}
+	if (!terrainProgram) {
+		std::cerr << "Failed to initialize terrain program" << std::endl;
 		//return false;
 	}
 
@@ -144,6 +152,9 @@ bool Window::initializeObjects()
 
 	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
 	launcher->addChild(launcherGeometry);
+
+	terrain = new TerrainGenerator(64, 500, 10, "photos_2017_11_13_fst_baked.jpg");
+
 	return true;
 }
 
@@ -319,6 +330,10 @@ void Window::displayCallback(GLFWwindow* window)
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 
+	//draw terrain
+	glUseProgram(terrainProgram);
+	terrain->draw(terrainProgram, projection, view, glm::mat4(1.0f));
+
 	//water
 	waterTile->draw(projection, view);
 
@@ -332,6 +347,8 @@ void Window::displayCallback(GLFWwindow* window)
 	for (int i = 0; i < object_list.size(); i++) {
 		object_list[i]->drawObject(colorProgram, projection, view);
 	}
+
+
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
 	glfwPollEvents();
@@ -454,7 +471,7 @@ glm::mat4 Window::translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::ve
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	float camSpeed = 200.5f * deltaTime;
+	float camSpeed = 500.5f * deltaTime;
 	/*
 	 * TODO: Section 4: Modify below to add your key callbacks.
 	 */
@@ -530,8 +547,9 @@ void Window::generateAndShootRocket() {
 
 	new_rocket->rotateObj(-deg, rotAxis);
 	new_rocket->scaleObj(glm::vec3(.1f,.1f,.1f));
-	new_rocket->acceleration = 0.0001f * camFront; //shoot upward cos rocket model face upward
+	new_rocket->acceleration = 0.001f * camFront; //shoot upward cos rocket model face upward
 	object_list.push_back(new_rocket);
+
 }
 
 void Window::insertionSort(std::vector<SceneObject*>& vec) {
