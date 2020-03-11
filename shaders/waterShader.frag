@@ -13,12 +13,12 @@ void main()
 
     //reflective
     vec3 R1 = reflect(I, normalize(Normal));
-    vec4 reflection = 0.1 * vec4(texture(skybox, R1).rgb, 1);
+    vec4 reflection = 0.5 * vec4(texture(skybox, R1).rgb, 1);
 
     //refractive
     float ratio = 1.00 / 1.33;
     vec3 R2 = refract(I, normalize(Normal), ratio);
-    vec4 refraction = 0.8 * vec4(texture(skybox, R2).rgb, 1);
+    vec4 refraction = 0.5 * vec4(texture(skybox, R2).rgb, 1);
 
     FragColor = reflection + refraction;
     //FragColor = vec4(1,0,0,1);

@@ -1,6 +1,6 @@
 #include "WaterTile.h"
 #include <ctime>
-WaterTile::WaterTile(GLuint waterProgram, float toX, float toZ, GLuint skyboxtextureID, glm::vec3* campos_ptr) {
+WaterTile::WaterTile(GLuint waterProgram, GLfloat toX, GLfloat toZ, GLuint skyboxtextureID, glm::vec3* campos_ptr) {
 
 	waterProg = waterProgram;
 	skyBoxTextureID = skyboxtextureID;
@@ -8,16 +8,12 @@ WaterTile::WaterTile(GLuint waterProgram, float toX, float toZ, GLuint skyboxtex
 
 	model = glm::mat4(1);
 
-	GLfloat deltaX = toX / 10000;
-	GLfloat deltaZ = toZ / 10000;
-	GLfloat x = 0;
-	GLfloat z = 0;
-	GLfloat nx;
-	GLfloat nz;
-
+	float deltaX = toX / (toX *10);
+	float deltaZ = toZ / (toZ *10);
+	float nx, nz;
 	//set vertices
-	for (GLfloat x = 0; x < 20; x = x + deltaX) {
-		for (GLfloat z = 0; z < 20; z = z + deltaX) {
+	for (float x = -toX; x < toX; x = x + deltaX) {
+		for (float z = -toZ; z < toZ; z = z + deltaX) {
 			nx = x + deltaX;
 			nz = z + deltaZ;
 			vertices.push_back(glm::vec3(x, 0, z));
@@ -63,7 +59,7 @@ void WaterTile::draw(glm::mat4 projection, glm::mat4 view)
 	glUseProgram(waterProg);
 	glUniformMatrix4fv(glGetUniformLocation(waterProg, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(waterProg, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(glGetUniformLocation(waterProg, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(waterProg, "model"), 1, GL_FALSE, glm::value_ptr(model));//shift it to z side
 	glUniform1f(glGetUniformLocation(waterProg, "cur_time"), time);
 	glUniform1ui(glGetUniformLocation(waterProg, "gerstner_waves_length"), 2);
 	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[0].direction"), 0.0f, -1.0f);
