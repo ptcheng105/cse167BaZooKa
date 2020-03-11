@@ -69,6 +69,7 @@ vec3 gerstner_wave(vec2 position, float time, inout vec3 normal) {
     normal = gerstner_wave_normal(wave_position, time);
     return wave_position; // Accumulated Gerstner Wave.
 }
+
 void main()
 {
     Normal = vec3(0,1,0);    //water face up, change this to vn
