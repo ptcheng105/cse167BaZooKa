@@ -126,7 +126,7 @@ bool Window::initializeObjects()
 	// create skybox
 	skybox = new SkyBox();
 	// create water
-	waterTile = new WaterTile(waterProgram, 20, 20, skybox->skyBoxTextureID, &camPos);
+	waterTile = new WaterTile(waterProgram, 500, 500, skybox->skyBoxTextureID, &camPos);
 
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
@@ -326,7 +326,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glUseProgram(modelProgram);
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	launcher->draw(modelProgram, projection, view, glm::mat4(1.0f));
+	launcher->draw(modelProgram, projection, view, glm::mat4(glm::scale(IM,glm::vec3(0.5,0.5,0.5))));
 
 	//draw target obj
 	for (int i = 0; i < object_list.size(); i++) {
