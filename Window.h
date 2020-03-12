@@ -33,6 +33,7 @@
 #include "BezierCurveGeometry.h"
 #include "SceneObject.h"
 #include "Rocket.h"
+#include "WaterTile.h"
 #include "TerrainGenerator.h"
 class Window
 {
@@ -64,6 +65,8 @@ public:
 	static glm::mat4 scaleRotateTranslate(glm::vec3 scale_vec, float deg, glm::vec3 rotAxis, glm::vec3 trans_vec);
 	static glm::mat4 translateRotateTranslate(float deg, glm::vec3 rotAxis, glm::vec3 trans_vec);
 	static void generateAndShootRocket();
+	static void insertionSort(std::vector<SceneObject*> &vec);
+	static bool cmpSceneObj(SceneObject* obj1, SceneObject* obj2);
 };
 
 #endif

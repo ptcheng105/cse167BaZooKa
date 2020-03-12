@@ -13,20 +13,12 @@ private:
 	PointsObj getPoints(std::string filename);
 	PointsObj getPoints2(std::string filename);
 	GLuint vao, vbo[2], ebo;
-
-	//hitbox
-	glm::vec3 origin_in_world = glm::vec3(0, 0, 0);
-	std::vector<glm::vec3> hitbox_vertices;
-	GLuint hitbox_vao;
-	GLuint hitbox_vbos[2];
 	PointsObj pointObj;
-public:
-	bool drawHitbox = true;
-	glm::vec3 hitbox_color = glm::vec3(1,1,1);
-	GLuint hitbox_program;
-	glm::vec3 hitbox_half_dimension;
 
+public:
+	glm::vec3 geo_color = glm::vec3(1,1,1);
 	glm::mat4 model = glm::mat4(1.0f);
+
 	std::vector<glm::vec3> points, normals;
 	std::vector<glm::ivec3> indices;
 
