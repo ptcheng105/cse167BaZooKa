@@ -69,7 +69,7 @@ TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std:
 		glm::vec3 A = p2 - p1;
 		glm::vec3 B = p3 - p1;
 
-		glm::vec3 normal = glm::cross(A, B);
+		glm::vec3 normal = glm::normalize(glm::cross(A, B));
 		normals.push_back(normal);
 	}
 

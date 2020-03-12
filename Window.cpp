@@ -151,7 +151,7 @@ bool Window::initializeObjects()
 	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
 	launcher->addChild(launcherGeometry);
 
-	terrain = new TerrainGenerator(64, 500, 10, "photos_2017_11_13_fst_baked.jpg");
+	terrain = new TerrainGenerator(64, 500, 30, "photos_2017_11_13_fst_baked.jpg");
 
 	return true;
 }
@@ -306,9 +306,9 @@ void Window::displayCallback(GLFWwindow* window)
 
 
 	//draw rocket
-	//rocket1->drawObject(program, projection, view);
+	rocket1->drawObject(program, projection, view);
 	for (int i = 0; i < rockets.size(); i++) {
-		//rockets[i]->drawObject(program, projection, view);
+		rockets[i]->drawObject(program, projection, view);
 	}
 
 	//draw terrain
@@ -498,7 +498,7 @@ void Window::generateAndShootRocket() {
 
 	new_rocket->rotateObj(-90, glm::vec3(1, 0, 0));
 	new_rocket->rotateObj(90 + pitch, glm::vec3(1,0,0));
-	float speed = 0.001;
+	float speed = 0.1;
 	new_rocket->velocity = speed * glm::normalize(direction); //shoot upward cos rocket model face upward
 	rockets.push_back(new_rocket);
 }
