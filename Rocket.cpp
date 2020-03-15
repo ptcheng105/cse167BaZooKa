@@ -70,7 +70,4 @@ Rocket::~Rocket() {
 	delete(jet_flame_spike_2);
 	delete(jet_flame_spike_3);
 	delete(jet_flame_spike_4);
-	// Delete the VBOs and the VAO.
-	glDeleteBuffers(2, hitbox_vbos);
-	glDeleteVertexArrays(1, &hitbox_vao);
 }

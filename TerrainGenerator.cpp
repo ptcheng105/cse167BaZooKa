@@ -72,6 +72,25 @@ TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std:
 		glm::vec3 normal = glm::normalize(glm::cross(A, B));
 		normals.push_back(normal);
 	}
+	//create cliff
+	for (int i = 0; i < vertices.size(); i++) {
+		//if z > 0, y = -10
+		GLfloat z_val= vertices[i].z;
+		glm::vec3 offset = glm::vec3(0,0,0);
+		if (z_val > 20) {
+			offset = glm::vec3(0, -30, 0);
+		}
+		else if (z_val > -80) {
+			float y_val = pow((-0.04 * z_val - 1), 3);
+			offset = glm::vec3(0, y_val, 0);
+		}
+		else {
+			float y_val = 20 * log(-z_val - 80) + 20;
+			offset = glm::vec3(0, y_val, 0);
+		}
+
+		vertices[i] = vertices[i] + offset;
+	}
 
 	model = glm::mat4(1.0f);	// Terrain can have a model I guess?
 	setBuffers();

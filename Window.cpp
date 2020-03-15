@@ -134,7 +134,7 @@ bool Window::initializeObjects()
 	// create skybox
 	skybox = new SkyBox();
 	// create water
-	waterTile = new WaterTile(waterProgram, 50, 50, skybox->skyBoxTextureID, &camPos);
+	waterTile = new WaterTile(waterProgram, 150, 100, skybox->skyBoxTextureID, &camPos);
 
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
@@ -142,8 +142,8 @@ bool Window::initializeObjects()
 	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
 
 	//test object
-	for (int i = 0; i < 6; i++) {
-		SceneObject* test_obj = new SceneObject(glm::vec3(-i, i*4, i*-2), colorProgram);
+	for (int i = -3; i < 3; i++) {
+		destroyTarget* test_obj = new destroyTarget(glm::vec3(i*30, 80, -90), colorProgram, colorProgram);
 		object_list.push_back(test_obj);
 	}
 
@@ -349,8 +349,6 @@ void Window::displayCallback(GLFWwindow* window)
 		object_list[i]->drawObject(colorProgram, projection, view);
 
 	}
-
-
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
 	glfwPollEvents();
