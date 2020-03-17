@@ -62,24 +62,26 @@ void WaterTile::draw(glm::mat4 projection, glm::mat4 view)
 	glUniformMatrix4fv(glGetUniformLocation(waterProg, "model"), 1, GL_FALSE, glm::value_ptr(model));//shift it to z side
 	glUniform1f(glGetUniformLocation(waterProg, "cur_time"), time);
 	glUniform1ui(glGetUniformLocation(waterProg, "gerstner_waves_length"), 3);
+	
 	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[0].direction"), 0.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].amplitude"), 1.0);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].steepness"), 0.5);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].frequency"), 1.0);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].speed"), 3.0);
-
-	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[1].direction"), 0.0f, -1.0f);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].amplitude"), 0.1);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].steepness"), 0.5);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].frequency"), 10.0);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].amplitude"), 2.0);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].steepness"), 0.3);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].frequency"), 0.3);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[0].speed"), 1.5);
+	
+	
+	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[1].direction"), 0.5f, 0.5f);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].amplitude"), 0.6);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].steepness"), 0.3);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].frequency"), 0.6);
 	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[1].speed"), 5.0);
 	
-	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[2].direction"), 1.0f, 1.0f);
+	glUniform2f(glGetUniformLocation(waterProg, "gerstner_waves[2].direction"), -0.5f, 0.5f);
 	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].amplitude"), 0.3);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].steepness"), 0.5);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].frequency"), 1.0);
-	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].speed"), 1.0);
-	
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].steepness"), 0.3);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].frequency"), 0.3);
+	glUniform1f(glGetUniformLocation(waterProg, "gerstner_waves[2].speed"), 1.5);
+
 	glUniform3fv(glGetUniformLocation(waterProg, "cameraPos"), 1, glm::value_ptr(*camPos_ptr));
 	// Bind to the VAO.
 	glBindVertexArray(vao);
