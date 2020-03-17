@@ -2,6 +2,7 @@
 #include <math.h> 
 #include<algorithm> 
 #include <iostream>
+#include <time.h>
 
 /* 
  * Declare your variables below. Unnamed namespace is used here to avoid 
@@ -136,6 +137,7 @@ bool Window::initializeObjects()
 	// create water
 	waterTile = new WaterTile(waterProgram, 250, 250, skybox->skyBoxTextureID, &camPos);
 
+
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
 	cone = new SceneGeometry("cone.obj", 2, colorProgram);
@@ -153,7 +155,7 @@ bool Window::initializeObjects()
 	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
 	launcher->addChild(launcherGeometry);
 
-	terrain = new TerrainGenerator(64, 500, 10, "photos_2017_11_13_fst_baked.jpg");
+	terrain = new TerrainGenerator(64, 500, 30, "photos_2017_11_13_fst_baked.jpg", time(NULL));
 
 	return true;
 }
@@ -343,9 +345,11 @@ void Window::displayCallback(GLFWwindow* window)
 	glUniformMatrix4fv(glGetUniformLocation(modelProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
 	launcher->draw(modelProgram, projection, view, glm::mat4(glm::scale(IM,glm::vec3(1,1,1))));
 
+
 	//draw target obj
 	for (int i = 0; i < object_list.size(); i++) {
 		object_list[i]->drawObject(colorProgram, projection, view);
+
 	}
 
 	// Gets events, including input such as keyboard and mouse or window resizing.
@@ -530,6 +534,9 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 				// Close the window. This causes the program to also terminate.
 				glfwSetWindowShouldClose(window, GL_TRUE);
 				break;
+			case GLFW_KEY_R:
+				terrain->randomize();
+				break;
 			default:
 				break;
 			}
@@ -540,6 +547,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 void Window::generateAndShootRocket() {
 	Rocket* new_rocket = new Rocket(camPos + 3.0f*camFront, cylinder, cone, sphere, colorProgram);
 	glm::vec3 rotAxis = glm::cross(glm::normalize(camFront), glm::vec3(0, 1, 0)); //because rocket is facing up in model we cross with (0,1,0)
+
 
 	float deg = glm::degrees(acos(glm::dot(camFront, glm::vec3(0, 1, 0))));
 

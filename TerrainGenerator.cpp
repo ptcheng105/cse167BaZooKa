@@ -1,7 +1,11 @@
 #include "TerrainGenerator.h"
 #include <stdlib.h>  
 #include <time.h>  
-TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std::string filename) {
+TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std::string filename, unsigned seed) {
+	initdivisions = divisions;
+	initsize = size;
+	initheight = height;
+
 	verticesCount = (divisions + 1) * (divisions + 1);		// VerticesCount = (maxDivisions + 1) * (maxDivisions + 1)	If there are 4 faces, then there are 5 vertices
 	vertices = std::vector<glm::vec3>(verticesCount);		// set size of vertices vector to verticesCount
 	uvs.resize(verticesCount);								// should end up with same amount of uvs as vertices
@@ -29,7 +33,7 @@ TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std:
 	}
 
 	//initialize random seed generator based on time
-	srand(time(NULL));
+	srand(seed);
 
 	// begin diamond square algorithm
 	// initialize corners of terrain grid
@@ -69,7 +73,7 @@ TerrainGenerator::TerrainGenerator(int divisions, float size, float height, std:
 		glm::vec3 A = p2 - p1;
 		glm::vec3 B = p3 - p1;
 
-		glm::vec3 normal = glm::cross(A, B);
+		glm::vec3 normal = glm::normalize(glm::cross(A, B));
 		normals.push_back(normal);
 	}
 	//create cliff
@@ -196,4 +200,93 @@ TerrainGenerator::~TerrainGenerator() {
 	glDeleteBuffers(2, vbo);
 	glDeleteBuffers(1, &ebo);
 	glDeleteVertexArrays(1, &vao);
+}
+
+void TerrainGenerator::randomize() {
+
+//reseed srand
+
+srand(time(NULL));
+// begin diamond square algorithm
+// initialize corners of terrain grid
+vertices[0].y = -initheight + rand() % (2 * (int)initheight + 1);
+vertices[initdivisions].y = -initheight + rand() % (2 * (int)initheight + 1);
+vertices[verticesCount - 1].y = -initheight + rand() % (2 * (int)initheight + 1);
+vertices[verticesCount - 1 - initdivisions].y = -initheight + rand() % (2 * (int)initheight + 1);
+
+
+// begin algorithm iterations
+int iterations = (int)log2(initdivisions);
+int numSquares = 1;
+int squareSize = initdivisions;
+float height = initheight;
+
+for (int i = 0; i < iterations; i++) {
+	int row = 0;
+	for (int j = 0; j < numSquares; j++) {
+		int col = 0;
+		for (int k = 0; k < numSquares; k++) {
+			DiamondSquare(row, col, squareSize, height, initdivisions);
+			col += squareSize;
+		}
+		row += squareSize;
+	}
+	numSquares *= 2;
+	squareSize /= 2;
+	height *= 0.7f;	//adjust to liking
+}
+
+// now that all vertices are set, find all surface normals
+
+for (int i = 0; i < triIndeces.size(); i++) {
+	glm::vec3 p1 = vertices[triIndeces[i].x];
+	glm::vec3 p2 = vertices[triIndeces[i].y];
+	glm::vec3 p3 = vertices[triIndeces[i].z];
+
+	glm::vec3 A = p2 - p1;
+	glm::vec3 B = p3 - p1;
+
+	glm::vec3 normal = glm::normalize(glm::cross(A, B));
+	normals.push_back(normal);
+}
+//create cliff
+for (int i = 0; i < vertices.size(); i++) {
+	//if z > 0, y = -10
+	GLfloat z_val = vertices[i].z;
+	glm::vec3 offset = glm::vec3(0, 0, 0);
+	if (z_val > 20) {
+		offset = glm::vec3(0, -30, 0);
+	}
+	else if (z_val > -80) {
+		float y_val = pow((-0.04 * z_val - 1), 3);
+		offset = glm::vec3(0, y_val, 0);
+	}
+	else {
+		float y_val = 20 * log(-z_val - 80) + 20;
+		offset = glm::vec3(0, y_val, 0);
+	}
+
+	vertices[i] = vertices[i] + offset;
+}
+
+model = glm::mat4(1.0f);	// Terrain can have a model I guess?
+updateBuffers();
+}
+
+void TerrainGenerator::updateBuffers() {
+	// This tells OpenGL which data it should be paying attention to
+	glBindVertexArray(vao);
+	// Bind to the first VBO. We will use it to store the points.
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	// Pass in the data.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(),
+		vertices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * normals.size(),
+		normals.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * uvs.size(),
+		uvs.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * triIndeces.size(), triIndeces.data(), GL_STATIC_DRAW);
 }
