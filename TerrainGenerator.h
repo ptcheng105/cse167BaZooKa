@@ -25,9 +25,14 @@ private:
 	std::vector<glm::vec3> normals;
 	GLuint verticesCount;
 	GLuint vao, vbo[3], ebo, texture;
+	int initdivisions;
+	float initsize;
+	float initheight;
 	glm::mat4 model;
 public:
-	TerrainGenerator(int maxDivisions, float maxSize, float maxHeight, std::string filename);
+	TerrainGenerator(int maxDivisions, float maxSize, float maxHeight, std::string filename, unsigned seed);
+	void randomize();
+	void updateBuffers();
 	~TerrainGenerator();
 	void DiamondSquare(int row, int col, int size, float offset, int divisions);
 	void genTexture(std::string filename);

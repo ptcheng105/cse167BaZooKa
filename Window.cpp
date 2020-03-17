@@ -2,6 +2,7 @@
 #include <math.h> 
 #include<algorithm> 
 #include <iostream>
+#include <time.h>
 
 /* 
  * Declare your variables below. Unnamed namespace is used here to avoid 
@@ -134,7 +135,7 @@ bool Window::initializeObjects()
 	// create skybox
 	skybox = new SkyBox();
 	// create water
-	waterTile = new WaterTile(waterProgram, 150, 100, skybox->skyBoxTextureID, &camPos);
+	waterTile = new WaterTile(waterProgram, 100, 100, skybox->skyBoxTextureID, &camPos);
 
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);
@@ -153,7 +154,7 @@ bool Window::initializeObjects()
 	launcher = new SceneTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.09f, .09f, .09f)) * glm::rotate(glm::mat4(1.0f), glm::radians(182.0f), glm::vec3(0, 1, 0)) * glm::translate(glm::mat4(1.0f), glm::vec3(-17.0f, 3.0f, 25.0f )));
 	launcher->addChild(launcherGeometry);
 
-	terrain = new TerrainGenerator(64, 500, 30, "photos_2017_11_13_fst_baked.jpg");
+	terrain = new TerrainGenerator(64, 500, 30, "photos_2017_11_13_fst_baked.jpg", time(NULL));
 
 	return true;
 }
@@ -531,6 +532,9 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			case GLFW_KEY_ESCAPE:
 				// Close the window. This causes the program to also terminate.
 				glfwSetWindowShouldClose(window, GL_TRUE);
+				break;
+			case GLFW_KEY_R:
+				terrain->randomize();
 				break;
 			default:
 				break;
