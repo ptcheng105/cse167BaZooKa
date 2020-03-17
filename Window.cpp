@@ -134,7 +134,7 @@ bool Window::initializeObjects()
 	// create skybox
 	skybox = new SkyBox();
 	// create water
-	waterTile = new WaterTile(waterProgram, 150, 100, skybox->skyBoxTextureID, &camPos);
+	waterTile = new WaterTile(waterProgram, 250, 250, skybox->skyBoxTextureID, &camPos);
 
 	// create all the geometry in geometry library
 	cylinder = new SceneGeometry("body_s.obj", 1, colorProgram);

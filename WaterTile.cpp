@@ -8,8 +8,8 @@ WaterTile::WaterTile(GLuint waterProgram, GLfloat toX, GLfloat toZ, GLuint skybo
 
 	model = glm::mat4(1);
 
-	float deltaX = toX / (toX *10);
-	float deltaZ = toZ / (toZ *10);
+	float deltaX = toX / (toX *5);
+	float deltaZ = toZ / (toZ *5);
 	float nx, nz;
 	//set vertices
 	for (float x = -toX; x < toX; x = x + deltaX) {
