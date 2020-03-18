@@ -36,7 +36,7 @@ namespace
 	//SceneObject* test_obj1, *test_obj2, *test_obj3, * test_obj4, * test_obj5;
 
 	//mode switch
-	bool displayHitbox = true;
+	bool displayHitbox = false;
 	bool destroyMode = true;
 
 	//Identity matrix
@@ -144,8 +144,8 @@ bool Window::initializeObjects()
 	sphere = new SceneGeometry("sphere.obj", 2, colorProgram);
 
 	//test object
-	for (int i = -3; i < 3; i++) {
-		destroyTarget* test_obj = new destroyTarget(glm::vec3(i*30, 80, -90), colorProgram, colorProgram);
+	for (int i = -1; i < 2; i++) {
+		destroyTarget* test_obj = new destroyTarget(glm::vec3(i*110, 90, -100), colorProgram, colorProgram);
 		object_list.push_back(test_obj);
 	}
 
@@ -545,7 +545,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 void Window::generateAndShootRocket() {
-	Rocket* new_rocket = new Rocket(camPos + 3.0f*camFront, cylinder, cone, sphere, colorProgram);
+	Rocket* new_rocket = new Rocket(camPos + 3.0f*camFront, cylinder, cone, sphere, colorProgram, displayHitbox);
 	glm::vec3 rotAxis = glm::cross(glm::normalize(camFront), glm::vec3(0, 1, 0)); //because rocket is facing up in model we cross with (0,1,0)
 
 

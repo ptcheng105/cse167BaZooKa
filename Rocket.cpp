@@ -1,5 +1,6 @@
 #include "Rocket.h"
-Rocket::Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog): SceneObject(position_in_world, hitbox_prog) {
+Rocket::Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog, bool displayHitbox): SceneObject(position_in_world, hitbox_prog) {
+	drawHitbox = displayHitbox;
 	//set color here
 	cone->geo_color = glm::vec3(0.8, 0, 0);
 	sphere->geo_color = glm::vec3(0.8,0,0);

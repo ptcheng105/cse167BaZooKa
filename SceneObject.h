@@ -30,7 +30,7 @@ public:
 	glm::vec3 hitbox_half_dimension;
 	GLuint hitbox_vao;
 	GLuint hitbox_vbos[2];
-	bool drawHitbox = true;
+	bool drawHitbox = false;
 	glm::vec3 hitbox_color = glm::vec3(1, 1, 1);
 	std::vector<float> XYZMaxMin;
 	bool destroyed = false;

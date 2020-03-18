@@ -6,9 +6,7 @@
 class destroyTarget : public SceneObject
 {
 public:
-	SceneTransform* rocketHead, * rocketBody, * jet_flame,
-		* jet_flame_base, * jet_flame_spike_1, * jet_flame_spike_2,
-		* jet_flame_spike_3, * jet_flame_spike_4;
+	SceneTransform* canon_pipe, * pipe1, * pipe2, * pipe3, *pipes, *canon_base;
 
 	glm::vec3 origin_in_world = glm::vec3(0, 0, 0);
 	std::vector<float> XYZMaxMin;

@@ -11,7 +11,7 @@ public:
 
 	glm::vec3 origin_in_world = glm::vec3(0,0,0);
 	std::vector<float> XYZMaxMin;
-	Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog);
+	Rocket(glm::vec3 position_in_world, SceneGeometry* cylinder, SceneGeometry* cone, SceneGeometry* sphere, GLuint hitbox_prog, bool displayHitbox);
 	~Rocket();
 };
 
