@@ -3,7 +3,6 @@ destroyTarget::destroyTarget(glm::vec3 position_in_world,GLuint colorProg, GLuin
 	// create all the geometry in geometry library
 	SceneGeometry* cylinder = new SceneGeometry("body_s.obj", 1, colorProg);
 	SceneGeometry* base_cy = new SceneGeometry("body_s.obj", 1, colorProg);
-	//SceneGeometry* cone = new SceneGeometry("cone.obj", 2, colorProg);
 
 	//set color here
 	cylinder->geo_color = glm::vec3(0.3, 0.3, 0.3);
@@ -21,7 +20,7 @@ destroyTarget::destroyTarget(glm::vec3 position_in_world,GLuint colorProg, GLuin
 	pipe1->addChild(canon_pipe);
 	pipe2->addChild(canon_pipe);
 	pipe3->addChild(canon_pipe);
-	pipes  = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 3.0f)));
+	pipes  = new SceneTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 3.5f)));
 	pipes->addChild(pipe1);
 	pipes->addChild(pipe2);
 	pipes->addChild(pipe3);

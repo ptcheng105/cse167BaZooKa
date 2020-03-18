@@ -63,7 +63,7 @@ namespace
 	bool rotating = false;
 
 	// for camera controls
-	glm::vec3 camPos = glm::vec3(0.0f, 30.0f, 0.0f);
+	glm::vec3 camPos = glm::vec3(0.0f, 30.0f, 100.0f);
 	glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
